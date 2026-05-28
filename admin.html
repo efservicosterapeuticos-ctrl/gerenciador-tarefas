@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel Admin</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-left">
+      <h2>Painel Admin</h2>
+      <nav class="admin-nav">
+        <button class="nav-tab active" data-tab="tarefas">Tarefas</button>
+        <button class="nav-tab" data-tab="pipelines">Pipelines</button>
+        <button class="nav-tab" data-tab="usuarios">Usuários</button>
+      </nav>
+    </div>
+    <div class="topbar-right">
+      <span id="user-name"></span>
+      <button class="btn btn-ghost" id="logout-btn">Sair</button>
+    </div>
+  </header>
+
+  <main class="main-content">
+
+    <!-- ABA TAREFAS -->
+    <section id="tab-tarefas" class="tab-content active">
+      <div class="section-header">
+        <h3>Todas as Tarefas</h3>
+        <button class="btn btn-primary" id="btn-nova-tarefa">+ Nova Tarefa</button>
+      </div>
+      <div class="filters">
+        <select id="filter-pipeline">
+          <option value="">Todos os pipelines</option>
+        </select>
+        <select id="filter-usuario">
+          <option value="">Todos os usuários</option>
+        </select>
+        <select id="filter-status">
+          <option value="">Todos os status</option>
+          <option value="pendente">Pendente</option>
+          <option value="em_andamento">Em andamento</option>
+          <option value="concluida">Concluída</option>
+        </select>
+      </div>
+      <div id="tasks-container" class="tasks-grid">
+        <p class="loading">Carregando tarefas...</p>
+      </div>
+    </section>
+
+    <!-- ABA PIPELINES -->
+    <section id="tab-pipelines" class="tab-content hidden">
+      <div class="section-header">
+        <h3>Pipelines</h3>
+        <button class="btn btn-primary" id="btn-novo-pipeline">+ Novo Pipeline</button>
+      </div>
+      <div id="pipelines-container" class="pipelines-list"></div>
+    </section>
+
+    <!-- ABA USUÁRIOS -->
+    <section id="tab-usuarios" class="tab-content hidden">
+      <div class="section-header">
+        <h3>Usuários</h3>
+        <button class="btn btn-primary" id="btn-novo-usuario">+ Novo Usuário</button>
+      </div>
+      <div id="usuarios-container" class="usuarios-list"></div>
+    </section>
+
+  </main>
+
+  <!-- MODAIS -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal" id="modal-content"></div>
+  </div>
+
+  <script src="js/supabase.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/tasks.js"></script>
+  <script src="js/pipelines.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/admin.js"></script>
+  <script>
+    (async () => {
+      const sessao = getSessao();
+      if (!sessao) { window.location.href = 'index.html'; return; }
+      if (sessao.perfil !== 'admin') { window.location.href = 'app.html'; return; }
+
+      document.getElementById('user-name').textContent = sessao.nome;
+      document.getElementById('logout-btn').addEventListener('click', () => {
+        logout();
+        window.location.href = 'index.html';
+      });
+
+      iniciarAdmin();
+    })();
+  </script>
+</body>
+</html>

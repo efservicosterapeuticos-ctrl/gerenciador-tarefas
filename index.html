@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gerenciador de Tarefas</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="login-page">
+  <div class="login-container">
+    <div class="login-card">
+      <h1>Gerenciador de Tarefas</h1>
+      <p class="login-subtitle">Grupo Elis Formaio</p>
+
+      <div id="login-error" class="alert alert-error hidden"></div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label for="pin">Digite seu PIN</label>
+          <input
+            type="password"
+            id="pin"
+            name="pin"
+            maxlength="6"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            placeholder="••••••"
+            autocomplete="off"
+            required
+          />
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" id="login-btn">
+          Entrar
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/supabase.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const pin = document.getElementById('pin').value.trim();
+      const btn = document.getElementById('login-btn');
+      const errorEl = document.getElementById('login-error');
+
+      errorEl.classList.add('hidden');
+      btn.disabled = true;
+      btn.textContent = 'Entrando...';
+
+      const result = await loginComPin(pin);
+
+      if (result.success) {
+        window.location.href = result.perfil === 'admin' ? 'admin.html' : 'app.html';
+      } else {
+        errorEl.textContent = result.message;
+        errorEl.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = 'Entrar';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minhas Tarefas</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-left">
+      <h2>Minhas Tarefas</h2>
+    </div>
+    <div class="topbar-right">
+      <span id="user-name"></span>
+      <button class="btn btn-ghost" id="logout-btn">Sair</button>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="filters">
+      <select id="filter-pipeline">
+        <option value="">Todos os pipelines</option>
+      </select>
+      <select id="filter-status">
+        <option value="">Todos os status</option>
+        <option value="pendente">Pendente</option>
+        <option value="em_andamento">Em andamento</option>
+        <option value="concluida">Concluída</option>
+      </select>
+      <select id="filter-prioridade">
+        <option value="">Todas as prioridades</option>
+        <option value="alta">Alta</option>
+        <option value="media">Média</option>
+        <option value="baixa">Baixa</option>
+      </select>
+    </div>
+
+    <div id="tasks-container" class="tasks-grid">
+      <p class="loading">Carregando tarefas...</p>
+    </div>
+  </main>
+
+  <script src="js/supabase.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/tasks.js"></script>
+  <script src="js/pipelines.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    (async () => {
+      const sessao = getSessao();
+      if (!sessao) { window.location.href = 'index.html'; return; }
+      if (sessao.perfil === 'admin') { window.location.href = 'admin.html'; return; }
+
+      document.getElementById('user-name').textContent = sessao.nome;
+      document.getElementById('logout-btn').addEventListener('click', () => {
+        logout();
+        window.location.href = 'index.html';
+      });
+
+      await carregarPipelinesNoFiltro('filter-pipeline');
+      await carregarTarefasUsuario(sessao.id);
+
+      ['filter-pipeline', 'filter-status', 'filter-prioridade'].forEach(id => {
+        document.getElementById(id).addEventListener('change', () => aplicarFiltros());
+      });
+    })();
+  </script>
+</body>
+</html>
