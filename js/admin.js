@@ -2,11 +2,8 @@ let _pipelines = [];
 let _usuarios = [];
 
 async function iniciarAdmin() {
-  await Promise.all([
-    carregarTarefasAdmin(),
-    carregarPipelinesAdmin(),
-    carregarUsuariosAdmin(),
-  ]);
+  await Promise.all([carregarPipelinesAdmin(), carregarUsuariosAdmin()]);
+  await carregarTarefasAdmin();
 
   configurarAbas();
   configurarBotoes();
