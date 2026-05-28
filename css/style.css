@@ -41,6 +41,7 @@ body {
   color: var(--text);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 /* ===== LOGIN ===== */
@@ -853,27 +854,38 @@ button, .btn, .nav-item, .perfil-card { touch-action: manipulation; }
 /* ===== MOBILE ===== */
 @media (max-width: 768px) {
 
+  /* ---- Layout base ---- */
+  html, body { max-width: 100vw; overflow-x: hidden; }
+  .main { margin-left: 0 !important; width: 100%; max-width: 100vw; }
+  .main-content { padding: 12px; max-width: 100vw; overflow-x: hidden; }
+
   /* ---- Sidebar ---- */
   .sidebar { transform: translateX(-100%); transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); }
   .sidebar.sidebar-open { transform: translateX(0); z-index: 101; }
   .sidebar-overlay.active { display: block; }
   .hamburger-btn { display: flex !important; }
-  .main { margin-left: 0; }
 
-  /* ---- Topbar: limpo — só hamburger + título + sino ---- */
-  .topbar { padding: 0 16px; height: 54px; gap: 0; }
-  .topbar-title { flex: 1; font-size: 1rem; padding: 0 12px; }
+  /* ---- Topbar: só hamburger + título + sino ---- */
+  .topbar { padding: 0 16px; height: 54px; gap: 0; max-width: 100vw; }
+  .topbar-title { flex: 1; font-size: 0.95rem; padding: 0 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #topbar-filters,
   #topbar-actions { display: none !important; }
+  .btn-mostrar-filtros { display: none !important; }
 
-  /* ---- Main content ---- */
-  .main-content {
-    padding: 12px;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
+  /* ---- Notificações: dropdown não transborda ---- */
+  .notif-bell-wrap { position: static; }
+  .notif-dropdown {
+    position: fixed;
+    top: 54px;
+    right: 0;
+    left: 0;
+    width: 100% !important;
+    border-radius: 0 0 16px 16px;
+    max-height: 60vh;
+    overflow-y: auto;
   }
 
-  /* ---- Kanban — carrossel com snap ---- */
+  /* ---- Kanban: carrossel com snap ---- */
   .kanban-board {
     display: flex;
     flex-wrap: nowrap;
@@ -881,22 +893,19 @@ button, .btn, .nav-item, .perfil-card { touch-action: manipulation; }
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     gap: 12px;
-    padding: 0 2px 80px;
-    min-height: 60vh;
+    padding: 0 4px 80px 4px;
+    min-height: 50vh;
     align-items: flex-start;
   }
   .kanban-board::-webkit-scrollbar { display: none; }
   .kanban-column {
     flex: 0 0 88vw;
     max-width: 88vw;
-    scroll-snap-align: center;
-    max-height: none;
-    min-height: 120px;
-  }
-  .kanban-cards {
-    overflow-y: visible;
+    scroll-snap-align: start;
     max-height: none;
   }
+  .kanban-cards { overflow-y: visible; max-height: none; }
+  .kanban-column:hover { transform: none; }
 
   /* ---- Task cards ---- */
   .task-card { padding: 12px 14px; }
@@ -915,7 +924,19 @@ button, .btn, .nav-item, .perfil-card { touch-action: manipulation; }
   .stat-number { font-size: 1.8rem; }
   .stat-card.stat-atrasada { grid-column: 1 / -1; }
 
-  /* ---- Modal — bottom sheet ---- */
+  /* ---- Pipelines e Usuários: empilha no mobile ---- */
+  .section-header { flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+  .section-header .btn { width: 100%; justify-content: center; }
+  .pipeline-item, .usuario-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px;
+  }
+  .pipeline-actions, .usuario-actions { width: 100%; justify-content: flex-end; }
+  .pipeline-actions .btn, .usuario-actions .btn { flex: 1; justify-content: center; min-height: 40px; }
+
+  /* ---- Modal: bottom sheet ---- */
   .modal-overlay { align-items: flex-end; }
   .modal {
     border-radius: 20px 20px 0 0;
@@ -940,23 +961,15 @@ button, .btn, .nav-item, .perfil-card { touch-action: manipulation; }
   .modal-actions { flex-direction: column-reverse; gap: 8px; padding-top: 8px; }
   .modal-actions .btn { width: 100%; justify-content: center; min-height: 48px; font-size: 0.95rem; }
 
-  /* ---- Forms — 16px previne zoom iOS ---- */
+  /* ---- Forms: 16px previne zoom iOS ---- */
   .form-group input,
   .form-group select,
   .form-group textarea { font-size: 16px !important; }
   .form-group { margin-bottom: 14px; }
-
-  /* ---- Checklist ---- */
-  .checklist-item { padding: 6px 0; min-height: 36px; }
   .modal-checklist-row input[type="text"] { font-size: 16px !important; }
 
-  /* ---- FAB visível ---- */
+  /* ---- FAB ---- */
   .fab { display: flex; }
-
-  /* ---- Pipelines / Usuários ---- */
-  .pipeline-item, .usuario-item { padding: 12px 14px; }
-  .pipeline-actions, .usuario-actions { gap: 8px; }
-  .pipeline-actions .btn, .usuario-actions .btn { min-height: 38px; }
 }
 
 /* ===== LOGIN MOBILE ===== */
