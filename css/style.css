@@ -772,121 +772,161 @@ body {
 
 /* ===== RESPONSIVO ===== */
 @keyframes slideUpSheet {
-  from { transform: translateY(100%); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
 }
 
-/* touch-action global — elimina delay de 300ms em todos os botões */
-button, .btn, .task-card, .nav-item, .perfil-card { touch-action: manipulation; }
+/* touch-action global — elimina delay de 300ms */
+button, .btn, .nav-item, .perfil-card { touch-action: manipulation; }
 
+/* ===== FAB — Nova Tarefa (mobile only) ===== */
+.fab {
+  display: none;
+  position: fixed;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  right: 20px;
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  color: #1a0e00;
+  font-size: 1.8rem;
+  font-weight: 300;
+  border: none;
+  box-shadow: 0 4px 20px rgba(200,151,58,0.45);
+  cursor: pointer;
+  z-index: 90;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  touch-action: manipulation;
+  line-height: 1;
+}
+.fab:active { transform: scale(0.92); box-shadow: 0 2px 10px rgba(200,151,58,0.3); }
+
+/* ===== MOBILE ===== */
 @media (max-width: 768px) {
+
   /* ---- Sidebar ---- */
   .sidebar { transform: translateX(-100%); transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); }
   .sidebar.sidebar-open { transform: translateX(0); z-index: 101; }
   .sidebar-overlay.active { display: block; }
   .hamburger-btn { display: flex !important; }
   .main { margin-left: 0; }
-  .main-content { padding: 14px; overflow-x: hidden; }
 
-  /* ---- Topbar ---- */
-  .topbar { padding: 0 14px; height: 52px; gap: 8px; }
-  .topbar-title { font-size: 1rem; }
-  .topbar-right { gap: 6px; flex-shrink: 1; min-width: 0; }
-  .search-input { width: 100px; font-size: 14px; }
-  .search-input:focus { width: 130px; }
+  /* ---- Topbar: limpo — só hamburger + título + sino ---- */
+  .topbar { padding: 0 16px; height: 54px; gap: 0; }
+  .topbar-title { flex: 1; font-size: 1rem; padding: 0 12px; }
+  #topbar-filters,
+  #topbar-actions { display: none !important; }
 
-  /* ---- Kanban — scroll com snap ---- */
+  /* ---- Main content ---- */
+  .main-content {
+    padding: 12px;
+    overflow-x: hidden;
+    height: calc(100vh - 54px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ---- Kanban — carrossel com snap ---- */
   .kanban-board {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
-    padding: 4px 4px 20px;
     gap: 12px;
-    min-height: auto;
+    padding: 0 2px 20px;
+    min-height: calc(100vh - 120px);
+    align-items: flex-start;
   }
+  .kanban-board::-webkit-scrollbar { display: none; }
   .kanban-column {
-    flex: 0 0 84vw;
-    max-width: 84vw;
-    scroll-snap-align: start;
+    flex: 0 0 88vw;
+    max-width: 88vw;
+    scroll-snap-align: center;
     max-height: none;
+    min-height: 200px;
   }
-  .kanban-column:last-child { margin-right: 4px; }
+  .kanban-cards { overflow-y: visible; max-height: none; }
+
+  /* ---- Task cards ---- */
   .task-card { padding: 12px 14px; }
   .task-card:hover,
   .task-card.prioridade-alta:hover,
   .task-card.prioridade-media:hover,
   .task-card.prioridade-baixa:hover { transform: none; box-shadow: var(--shadow-sm); }
-  .task-actions { flex-wrap: wrap; gap: 6px; }
-  .btn.btn-sm { min-height: 38px; padding: 6px 14px; }
+  .task-actions { flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .btn.btn-sm { min-height: 40px; padding: 8px 16px; font-size: 0.8rem; }
 
   /* ---- Dashboard ---- */
   .dash-grid { grid-template-columns: 1fr; gap: 12px; }
   .dash-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
   .stat-card { padding: 14px 12px; }
+  .stat-card:hover { transform: none; }
   .stat-number { font-size: 1.8rem; }
+  .stat-card.stat-atrasada { grid-column: 1 / -1; }
 
   /* ---- Modal — bottom sheet ---- */
-  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal-overlay { align-items: flex-end; }
   .modal {
     border-radius: 20px 20px 0 0;
     max-width: 100%;
     width: 100%;
-    max-height: 88vh;
+    max-height: 90vh;
     overflow-y: auto;
-    padding: 8px 20px 24px;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 20px 24px;
     padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
-    animation: slideUpSheet 0.28s cubic-bezier(0.4,0,0.2,1);
+    animation: slideUpSheet 0.3s cubic-bezier(0.4,0,0.2,1);
   }
   .modal::before {
     content: '';
     display: block;
-    width: 36px;
-    height: 4px;
+    width: 40px; height: 4px;
     background: var(--border);
     border-radius: 99px;
-    margin: 12px auto 16px;
+    margin: 14px auto 20px;
   }
   .modal h3 { margin-bottom: 16px; }
-  .modal-actions { flex-direction: column-reverse; gap: 8px; }
-  .modal-actions .btn { width: 100%; text-align: center; justify-content: center; min-height: 44px; }
+  .modal-actions { flex-direction: column-reverse; gap: 8px; padding-top: 8px; }
+  .modal-actions .btn { width: 100%; justify-content: center; min-height: 48px; font-size: 0.95rem; }
 
-  /* ---- Forms — 16px previne zoom no iOS ---- */
+  /* ---- Forms — 16px previne zoom iOS ---- */
   .form-group input,
   .form-group select,
-  .form-group textarea { font-size: 16px; }
+  .form-group textarea { font-size: 16px !important; }
+  .form-group { margin-bottom: 14px; }
 
-  /* ---- Botões ---- */
-  .btn-primary, .btn-outline, .btn-danger { min-height: 40px; }
+  /* ---- Checklist ---- */
+  .checklist-item { padding: 6px 0; min-height: 36px; }
+  .modal-checklist-row input[type="text"] { font-size: 16px !important; }
+
+  /* ---- FAB visível ---- */
+  .fab { display: flex; }
+
+  /* ---- Pipelines / Usuários ---- */
+  .pipeline-item, .usuario-item { padding: 12px 14px; }
+  .pipeline-actions, .usuario-actions { gap: 8px; }
+  .pipeline-actions .btn, .usuario-actions .btn { min-height: 38px; }
 }
 
-@media (max-width: 480px) {
-  /* ---- Login full-screen ---- */
-  .login-container { padding: 0; max-width: 100%; height: 100dvh; }
+/* ===== LOGIN MOBILE ===== */
+@media (max-width: 520px) {
+  .login-container { padding: 0; max-width: 100%; }
   .login-card {
     min-height: 100dvh;
     border-radius: 0;
-    padding: 52px 28px 32px;
+    border-top: none;
+    padding: 60px 28px 32px;
     padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px));
     display: flex;
     flex-direction: column;
   }
-
-  /* ---- Profile grid ---- */
-  .perfis-grid { gap: 10px; margin: 16px 0 4px; }
-  .perfil-card { min-width: 76px; padding: 12px 14px; }
-  .perfil-avatar { width: 40px; height: 40px; font-size: 1.1rem; }
-
-  /* ---- Esconde filtros dropdowns, mantém busca e sino ---- */
-  #topbar-filters select,
-  #topbar-actions select { display: none !important; }
-  .search-input { width: 120px; }
-  .search-input:focus { width: 150px; }
-
-  /* ---- Kanban ---- */
-  .kanban-column { flex: 0 0 88vw; max-width: 88vw; }
-  .main-content { padding: 10px; }
-
-  /* ---- Stats ---- */
-  .stat-card.stat-atrasada { grid-column: 1 / -1; }
+  .perfis-grid { gap: 10px; margin: 20px 0 8px; }
+  .perfil-card { min-width: 80px; padding: 14px 12px; }
+  .perfil-avatar { width: 42px; height: 42px; font-size: 1.1rem; }
+  .login-card h1 { font-size: 1.4rem; }
 }
 
 /* ===== TEMAS ===== */
