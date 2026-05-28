@@ -10,18 +10,23 @@ async function iniciarAdmin() {
   configurarFiltrosAdmin();
 }
 
+const TAB_TITLES = { dashboard: 'Dashboard', tarefas: 'Tarefas', pipelines: 'Pipelines', usuarios: 'Usuários' };
+
 // ===== ABAS =====
 function configurarAbas() {
-  document.querySelectorAll('.nav-tab[data-tab]').forEach(tab => {
+  document.querySelectorAll('.nav-item[data-tab]').forEach(tab => {
     tab.addEventListener('click', () => {
-      document.querySelectorAll('.nav-tab[data-tab]').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav-item[data-tab]').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
       tab.classList.add('active');
-      document.getElementById(`tab-${tab.dataset.tab}`).classList.remove('hidden');
+      const tabName = tab.dataset.tab;
+      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+      document.getElementById('topbar-title').textContent = TAB_TITLES[tabName] || tabName;
 
-      if (tab.dataset.tab === 'dashboard') {
-        renderDashboardAdmin(_tarefasCache, _usuarios, _pipelines);
-      }
+      const topbarActions = document.getElementById('topbar-actions');
+      topbarActions.style.display = tabName === 'tarefas' ? 'flex' : 'none';
+
+      if (tabName === 'dashboard') renderDashboardAdmin(_tarefasCache, _usuarios, _pipelines);
     });
   });
 }

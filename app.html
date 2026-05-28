@@ -3,57 +3,76 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Minhas Tarefas</title>
+  <title>Minhas Tarefas — Grupo Elis Formaio</title>
   <link rel="stylesheet" href="css/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="topbar-left">
-      <h2>Gerenciador</h2>
-      <nav class="admin-nav">
-        <button class="nav-tab active" data-view="kanban">Kanban</button>
-        <button class="nav-tab" data-view="dashboard">Dashboard</button>
-      </nav>
-    </div>
-    <div class="topbar-right">
-      <span id="user-name"></span>
-      <button class="btn btn-ghost" id="logout-btn">Sair</button>
-    </div>
-  </header>
 
-  <main class="main-content">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="brand">Grupo Elis Formaio</div>
+      <div class="event-tag">Gerenciador de Tarefas</div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="kanban">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Kanban
+      </button>
+      <button class="nav-item" data-view="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Meu Dashboard
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sf-label">Usuário</div>
+      <div class="sf-value" id="sidebar-user-name"></div>
+      <button class="sf-logout" id="logout-btn">Sair →</button>
+    </div>
+  </aside>
 
-    <!-- VIEW KANBAN -->
-    <section id="view-kanban" class="view-content active">
-      <div class="filters">
-        <select id="filter-status">
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title" id="topbar-title">Minhas Tarefas</span>
+      <div class="topbar-right">
+        <select id="filter-status" class="filters" style="margin:0">
           <option value="">Todos os status</option>
           <option value="pendente">Pendente</option>
           <option value="em_andamento">Em andamento</option>
           <option value="concluida">Concluída</option>
         </select>
-        <select id="filter-prioridade">
+        <select id="filter-prioridade" class="filters" style="margin:0">
           <option value="">Todas as prioridades</option>
           <option value="alta">Alta</option>
           <option value="media">Média</option>
           <option value="baixa">Baixa</option>
         </select>
       </div>
-      <div id="tasks-container" class="kanban-board">
-        <p class="loading">Carregando tarefas...</p>
-      </div>
-    </section>
+    </div>
 
-    <!-- VIEW DASHBOARD -->
-    <section id="view-dashboard" class="view-content hidden">
-      <div id="dashboard-container">
-        <p class="loading">Carregando dashboard...</p>
-      </div>
-    </section>
+    <div class="main-content">
 
-  </main>
+      <section id="view-kanban" class="view-content active">
+        <div id="tasks-container" class="kanban-board">
+          <p class="loading">Carregando tarefas...</p>
+        </div>
+      </section>
+
+      <section id="view-dashboard" class="view-content hidden">
+        <div id="dashboard-container">
+          <p class="loading">Carregando dashboard...</p>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal" id="modal-content"></div>
+  </div>
 
   <script src="js/supabase.js"></script>
   <script src="js/auth.js"></script>
@@ -67,7 +86,7 @@
       if (!sessao) { window.location.href = 'index.html'; return; }
       if (sessao.perfil === 'admin') { window.location.href = 'admin.html'; return; }
 
-      document.getElementById('user-name').textContent = sessao.nome;
+      document.getElementById('sidebar-user-name').textContent = sessao.nome;
       document.getElementById('logout-btn').addEventListener('click', () => {
         logout();
         window.location.href = 'index.html';
@@ -79,16 +98,19 @@
         document.getElementById(id).addEventListener('change', () => aplicarFiltros());
       });
 
-      document.querySelectorAll('.nav-tab[data-view]').forEach(tab => {
+      document.querySelectorAll('.nav-item[data-view]').forEach(tab => {
         tab.addEventListener('click', () => {
-          document.querySelectorAll('.nav-tab[data-view]').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.nav-item[data-view]').forEach(t => t.classList.remove('active'));
           document.querySelectorAll('.view-content').forEach(v => v.classList.add('hidden'));
           tab.classList.add('active');
-          document.getElementById(`view-${tab.dataset.view}`).classList.remove('hidden');
+          const view = tab.dataset.view;
+          document.getElementById(`view-${view}`).classList.remove('hidden');
+          document.getElementById('topbar-title').textContent = view === 'kanban' ? 'Minhas Tarefas' : 'Meu Dashboard';
 
-          if (tab.dataset.view === 'dashboard') {
-            renderDashboardUsuario(_tarefasCache, sessao.nome);
-          }
+          const filterWrap = document.querySelector('.topbar-right');
+          filterWrap.style.display = view === 'kanban' ? 'flex' : 'none';
+
+          if (view === 'dashboard') renderDashboardUsuario(_tarefasCache, sessao.nome);
         });
       });
     })();

@@ -3,81 +3,97 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Painel Admin</title>
+  <title>Admin — Grupo Elis Formaio</title>
   <link rel="stylesheet" href="css/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="topbar-left">
-      <h2>Admin</h2>
-      <nav class="admin-nav">
-        <button class="nav-tab" data-tab="dashboard">Dashboard</button>
-        <button class="nav-tab active" data-tab="tarefas">Tarefas</button>
-        <button class="nav-tab" data-tab="pipelines">Pipelines</button>
-        <button class="nav-tab" data-tab="usuarios">Usuários</button>
-      </nav>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="brand">Grupo Elis Formaio</div>
+      <div class="event-tag">Painel Administrativo</div>
     </div>
-    <div class="topbar-right">
-      <span id="user-name"></span>
-      <button class="btn btn-ghost" id="logout-btn">Sair</button>
+    <nav class="sidebar-nav">
+      <button class="nav-item" data-tab="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item active" data-tab="tarefas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Tarefas
+      </button>
+      <button class="nav-item" data-tab="pipelines">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        Pipelines
+      </button>
+      <button class="nav-item" data-tab="usuarios">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Usuários
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sf-label">Administrador</div>
+      <div class="sf-value" id="sidebar-user-name"></div>
+      <button class="sf-logout" id="logout-btn">Sair →</button>
     </div>
-  </header>
+  </aside>
 
-  <main class="main-content">
-
-    <!-- ABA DASHBOARD -->
-    <section id="tab-dashboard" class="tab-content hidden">
-      <div id="dashboard-container">
-        <p class="loading">Carregando dashboard...</p>
-      </div>
-    </section>
-
-    <!-- ABA TAREFAS -->
-    <section id="tab-tarefas" class="tab-content active">
-      <div class="section-header">
-        <h3>Todas as Tarefas</h3>
-        <button class="btn btn-primary" id="btn-nova-tarefa">+ Nova Tarefa</button>
-      </div>
-      <div class="filters">
-        <select id="filter-pipeline">
-          <option value="">Todos os pipelines</option>
-        </select>
-        <select id="filter-usuario">
-          <option value="">Todos os usuários</option>
-        </select>
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title" id="topbar-title">Tarefas</span>
+      <div class="topbar-right" id="topbar-actions">
+        <select id="filter-pipeline"><option value="">Todos os pipelines</option></select>
+        <select id="filter-usuario"><option value="">Todos os usuários</option></select>
         <select id="filter-status">
           <option value="">Todos os status</option>
           <option value="pendente">Pendente</option>
           <option value="em_andamento">Em andamento</option>
           <option value="concluida">Concluída</option>
         </select>
+        <button class="btn btn-gold" id="btn-nova-tarefa">+ Nova Tarefa</button>
       </div>
-      <div id="tasks-container" class="kanban-board">
-        <p class="loading">Carregando tarefas...</p>
-      </div>
-    </section>
+    </div>
 
-    <!-- ABA PIPELINES -->
-    <section id="tab-pipelines" class="tab-content hidden">
-      <div class="section-header">
-        <h3>Pipelines</h3>
-        <button class="btn btn-primary" id="btn-novo-pipeline">+ Novo Pipeline</button>
-      </div>
-      <div id="pipelines-container" class="pipelines-list"></div>
-    </section>
+    <div class="main-content">
 
-    <!-- ABA USUÁRIOS -->
-    <section id="tab-usuarios" class="tab-content hidden">
-      <div class="section-header">
-        <h3>Controle de Usuários</h3>
-        <button class="btn btn-primary" id="btn-novo-usuario">+ Novo Usuário</button>
-      </div>
-      <div id="usuarios-container" class="usuarios-list"></div>
-    </section>
+      <!-- ABA DASHBOARD -->
+      <section id="tab-dashboard" class="tab-content hidden">
+        <div id="dashboard-container">
+          <p class="loading">Carregando dashboard...</p>
+        </div>
+      </section>
 
-  </main>
+      <!-- ABA TAREFAS -->
+      <section id="tab-tarefas" class="tab-content active">
+        <div id="tasks-container" class="kanban-board">
+          <p class="loading">Carregando tarefas...</p>
+        </div>
+      </section>
+
+      <!-- ABA PIPELINES -->
+      <section id="tab-pipelines" class="tab-content hidden">
+        <div class="section-header">
+          <h3>Pipelines</h3>
+          <button class="btn btn-primary" id="btn-novo-pipeline">+ Novo Pipeline</button>
+        </div>
+        <div id="pipelines-container" class="pipelines-list"></div>
+      </section>
+
+      <!-- ABA USUÁRIOS -->
+      <section id="tab-usuarios" class="tab-content hidden">
+        <div class="section-header">
+          <h3>Controle de Usuários</h3>
+          <button class="btn btn-primary" id="btn-novo-usuario">+ Novo Usuário</button>
+        </div>
+        <div id="usuarios-container" class="usuarios-list"></div>
+      </section>
+
+    </div>
+  </div>
 
   <!-- MODAIS -->
   <div id="modal-overlay" class="modal-overlay hidden">
@@ -97,7 +113,7 @@
       if (!sessao) { window.location.href = 'index.html'; return; }
       if (sessao.perfil !== 'admin') { window.location.href = 'app.html'; return; }
 
-      document.getElementById('user-name').textContent = sessao.nome;
+      document.getElementById('sidebar-user-name').textContent = sessao.nome;
       document.getElementById('logout-btn').addEventListener('click', () => {
         logout();
         window.location.href = 'index.html';
