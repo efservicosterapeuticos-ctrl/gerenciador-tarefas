@@ -210,21 +210,26 @@ function renderizarUsuarios(usuarios) {
     container.innerHTML = '<p class="empty-state">Nenhum usuário cadastrado.</p>';
     return;
   }
-  container.innerHTML = usuarios.map(u => `
-    <div class="usuario-item" data-id="${u.id}">
-      <div class="usuario-info">
-        <div class="usuario-avatar">${u.nome.charAt(0).toUpperCase()}</div>
-        <div>
-          <div class="usuario-nome">${u.nome}</div>
-          <div class="usuario-meta">
-            <span class="badge badge-perfil-${u.perfil}">${u.perfil === 'admin' ? 'Admin' : 'Usuário'}</span>
+  container.innerHTML = usuarios.map(u => {
+    const avatarHtml = u.foto_url
+      ? `<img class="usuario-foto" src="${u.foto_url}" alt="${u.nome}" />`
+      : `<div class="usuario-avatar">${u.nome.charAt(0).toUpperCase()}</div>`;
+    return `
+      <div class="usuario-item" data-id="${u.id}">
+        <div class="usuario-info">
+          ${avatarHtml}
+          <div>
+            <div class="usuario-nome">${u.nome}</div>
+            <div class="usuario-meta">
+              <span class="badge badge-perfil-${u.perfil}">${u.perfil === 'admin' ? 'Admin' : 'Usuário'}</span>
+            </div>
           </div>
         </div>
+        <div class="usuario-actions">
+          <button class="btn btn-sm btn-outline" onclick="abrirModalEditarUsuario('${u.id}')">Editar</button>
+          <button class="btn btn-sm btn-danger" onclick="confirmarExcluirUsuario('${u.id}')">Remover</button>
+        </div>
       </div>
-      <div class="usuario-actions">
-        <button class="btn btn-sm btn-outline" onclick="abrirModalEditarUsuario('${u.id}')">Editar</button>
-        <button class="btn btn-sm btn-danger" onclick="confirmarExcluirUsuario('${u.id}')">Remover</button>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }

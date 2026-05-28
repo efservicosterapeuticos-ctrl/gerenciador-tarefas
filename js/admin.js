@@ -67,9 +67,42 @@ async function carregarPipelinesAdmin() {
 }
 
 async function carregarUsuariosAdmin() {
-  const { data } = await sb.from('users').select('id, nome, perfil').order('nome');
+  const { data } = await sb.from('users').select('id, nome, perfil, foto_url').order('nome');
   _usuarios = data || [];
   renderizarUsuarios(_usuarios);
+}
+
+// ===== FOTO HELPERS =====
+function comprimirFoto(file, maxSize = 200) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const size = Math.min(maxSize, Math.min(img.width, img.height));
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        const sx = (img.width - size) / 2;
+        const sy = (img.height - size) / 2;
+        ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
+        resolve(canvas.toDataURL('image/jpeg', 0.80));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function previsualizarFoto(input) {
+  const preview = document.getElementById('foto-preview');
+  if (!input.files?.[0]) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    preview.innerHTML = `<img src="${e.target.result}" />`;
+  };
+  reader.readAsDataURL(input.files[0]);
 }
 
 // ===== CHECKLIST HELPERS =====
@@ -420,8 +453,21 @@ function abrirModalNovoUsuario() {
     <h3>Novo Usuário</h3>
     <form id="form-usuario">
       <div class="form-group">
+        <label>Foto de Perfil</label>
+        <div class="foto-upload-wrap">
+          <div class="foto-preview" id="foto-preview">
+            <div class="foto-preview-inicial">?</div>
+          </div>
+          <div>
+            <label for="u-foto" class="foto-upload-label">Escolher foto</label>
+            <input type="file" id="u-foto" accept="image/*" class="hidden" onchange="previsualizarFoto(this)" />
+            <small style="display:block;font-size:0.7rem;color:var(--text-muted);margin-top:4px">JPG ou PNG</small>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
         <label>Nome</label>
-        <input type="text" id="u-nome" required />
+        <input type="text" id="u-nome" required oninput="atualizarInicialPreview(this.value)" />
       </div>
       <div class="form-group">
         <label>PIN (4 a 6 dígitos)</label>
@@ -440,26 +486,59 @@ function abrirModalNovoUsuario() {
       </div>
     </form>
   `);
+
   document.getElementById('form-usuario').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const { error } = await sb.from('users').insert({
+    const fileInput = document.getElementById('u-foto');
+    let foto_url = null;
+    if (fileInput.files?.[0]) {
+      foto_url = await comprimirFoto(fileInput.files[0]);
+    }
+    const payload = {
       nome: document.getElementById('u-nome').value,
       pin: document.getElementById('u-pin').value,
       perfil: document.getElementById('u-perfil').value,
-    });
+      ...(foto_url && { foto_url }),
+    };
+    const { error } = await sb.from('users').insert(payload);
     if (error) { alert('Erro ao criar usuário: ' + error.message); return; }
     fecharModal();
     await carregarUsuariosAdmin();
   });
 }
 
+function atualizarInicialPreview(nome) {
+  const preview = document.getElementById('foto-preview');
+  if (!preview) return;
+  const temFoto = preview.querySelector('img');
+  if (!temFoto) {
+    const inicial = preview.querySelector('.foto-preview-inicial');
+    if (inicial) inicial.textContent = nome.charAt(0).toUpperCase() || '?';
+  }
+}
+
 async function abrirModalEditarUsuario(id) {
   const usuario = _usuarios.find(u => u.id === id);
   if (!usuario) return;
 
+  const fotoAtualHtml = usuario.foto_url
+    ? `<img src="${usuario.foto_url}" />`
+    : `<div class="foto-preview-inicial">${usuario.nome.charAt(0).toUpperCase()}</div>`;
+
   abrirModal(`
     <h3>Editar Usuário</h3>
     <form id="form-editar-usuario">
+      <div class="form-group">
+        <label>Foto de Perfil</label>
+        <div class="foto-upload-wrap">
+          <div class="foto-preview" id="foto-preview">${fotoAtualHtml}</div>
+          <div>
+            <label for="u-foto" class="foto-upload-label">Trocar foto</label>
+            <input type="file" id="u-foto" accept="image/*" class="hidden" onchange="previsualizarFoto(this)" />
+            <small style="display:block;font-size:0.7rem;color:var(--text-muted);margin-top:4px">JPG ou PNG</small>
+          </div>
+        </div>
+      </div>
       <div class="form-group">
         <label>Nome</label>
         <input type="text" id="u-nome" value="${usuario.nome}" required />
@@ -490,6 +569,11 @@ async function abrirModalEditarUsuario(id) {
     };
     const novoPin = document.getElementById('u-pin').value;
     if (novoPin) payload.pin = novoPin;
+
+    const fileInput = document.getElementById('u-foto');
+    if (fileInput.files?.[0]) {
+      payload.foto_url = await comprimirFoto(fileInput.files[0]);
+    }
 
     const { error } = await sb.from('users').update(payload).eq('id', id);
     if (error) { alert('Erro ao salvar: ' + error.message); return; }

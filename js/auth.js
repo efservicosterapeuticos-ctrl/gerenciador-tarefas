@@ -1,10 +1,11 @@
-async function loginComPin(pin) {
+async function loginComPin(userId, pin) {
   try {
     const { data, error } = await sb
       .from('users')
-      .select('id, nome, perfil, pin')
-      .single()
-      .eq('pin', pin);
+      .select('id, nome, perfil')
+      .eq('id', userId)
+      .eq('pin', pin)
+      .single();
 
     if (error || !data) {
       return { success: false, message: 'PIN incorreto. Tente novamente.' };

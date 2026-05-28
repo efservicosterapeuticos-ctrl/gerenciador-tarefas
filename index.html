@@ -3,22 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gerenciador de Tarefas</title>
+  <title>Gerenciador de Tarefas — Grupo Elis Formaio</title>
   <link rel="stylesheet" href="css/style.css" />
+  <script src="js/theme.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="login-page">
-  <div class="login-container">
-    <div class="login-card">
+
+  <!-- STEP 1: Seleção de perfil -->
+  <div id="step-profiles" class="profiles-page">
+    <p class="login-empresa">Grupo Elis Formaio</p>
+    <h1 class="profiles-title">Quem é você?</h1>
+    <div id="profiles-grid" class="profiles-grid">
+      <p class="loading">Carregando perfis...</p>
+    </div>
+  </div>
+
+  <!-- STEP 2: PIN -->
+  <div id="step-pin" class="pin-step hidden">
+    <div class="pin-card">
       <p class="login-empresa">Grupo Elis Formaio</p>
-      <h1>Gerenciador de Tarefas</h1>
-      <p class="login-subtitle">Digite seu PIN para entrar</p>
+      <div class="pin-avatar-wrap">
+        <img id="pin-foto" class="pin-foto hidden" alt="" />
+        <div id="pin-inicial" class="pin-inicial"></div>
+      </div>
+      <p class="pin-nome" id="pin-nome"></p>
 
       <div id="login-error" class="alert alert-error hidden"></div>
 
       <form id="login-form">
         <div class="form-group">
-          <label for="pin">Digite seu PIN</label>
+          <label for="pin">PIN</label>
           <input
             type="password"
             id="pin"
@@ -31,18 +46,97 @@
             required
           />
         </div>
-        <button type="submit" class="btn btn-primary btn-full" id="login-btn">
-          Entrar
-        </button>
+        <button type="submit" class="btn btn-primary btn-full" id="login-btn">Entrar</button>
       </form>
+
+      <button class="btn-trocar-perfil" id="btn-voltar">← Trocar perfil</button>
     </div>
   </div>
 
   <script src="js/supabase.js"></script>
   <script src="js/auth.js"></script>
   <script>
+    // Redireciona se já estiver logado
+    const _sessaoAtual = getSessao();
+    if (_sessaoAtual) {
+      window.location.href = _sessaoAtual.perfil === 'admin' ? 'admin.html' : 'app.html';
+    }
+
+    let usuarioSelecionado = null;
+
+    async function carregarPerfis() {
+      const { data: usuarios, error } = await sb
+        .from('users')
+        .select('id, nome, perfil, foto_url')
+        .order('nome');
+
+      const grid = document.getElementById('profiles-grid');
+
+      if (error || !usuarios?.length) {
+        grid.innerHTML = '<p class="empty-state">Nenhum usuário cadastrado.</p>';
+        return;
+      }
+
+      grid.innerHTML = usuarios.map(u => {
+        const inicial = u.nome.charAt(0).toUpperCase();
+        const avatarHtml = u.foto_url
+          ? `<img class="profile-foto" src="${u.foto_url}" alt="${u.nome}" loading="lazy" />`
+          : `<div class="profile-inicial">${inicial}</div>`;
+
+        return `
+          <button
+            class="profile-card"
+            data-id="${u.id}"
+            data-nome="${u.nome}"
+            data-foto="${u.foto_url || ''}"
+            data-inicial="${inicial}"
+          >
+            <div class="profile-avatar">${avatarHtml}</div>
+            <span class="profile-nome">${u.nome}</span>
+          </button>
+        `;
+      }).join('');
+
+      grid.querySelectorAll('.profile-card').forEach(card => {
+        card.addEventListener('click', () => selecionarPerfil(card));
+      });
+    }
+
+    function selecionarPerfil(card) {
+      usuarioSelecionado = { id: card.dataset.id, nome: card.dataset.nome };
+
+      document.getElementById('pin-nome').textContent = card.dataset.nome;
+
+      const fotoEl = document.getElementById('pin-foto');
+      const inicialEl = document.getElementById('pin-inicial');
+
+      if (card.dataset.foto) {
+        fotoEl.src = card.dataset.foto;
+        fotoEl.classList.remove('hidden');
+        inicialEl.classList.add('hidden');
+      } else {
+        inicialEl.textContent = card.dataset.inicial;
+        inicialEl.classList.remove('hidden');
+        fotoEl.classList.add('hidden');
+      }
+
+      document.getElementById('step-profiles').classList.add('hidden');
+      document.getElementById('step-pin').classList.remove('hidden');
+      document.getElementById('pin').value = '';
+      document.getElementById('login-error').classList.add('hidden');
+      setTimeout(() => document.getElementById('pin').focus(), 120);
+    }
+
+    document.getElementById('btn-voltar').addEventListener('click', () => {
+      document.getElementById('step-pin').classList.add('hidden');
+      document.getElementById('step-profiles').classList.remove('hidden');
+      usuarioSelecionado = null;
+    });
+
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (!usuarioSelecionado) return;
+
       const pin = document.getElementById('pin').value.trim();
       const btn = document.getElementById('login-btn');
       const errorEl = document.getElementById('login-error');
@@ -51,7 +145,7 @@
       btn.disabled = true;
       btn.textContent = 'Entrando...';
 
-      const result = await loginComPin(pin);
+      const result = await loginComPin(usuarioSelecionado.id, pin);
 
       if (result.success) {
         window.location.href = result.perfil === 'admin' ? 'admin.html' : 'app.html';
@@ -60,8 +154,12 @@
         errorEl.classList.remove('hidden');
         btn.disabled = false;
         btn.textContent = 'Entrar';
+        document.getElementById('pin').value = '';
+        document.getElementById('pin').focus();
       }
     });
+
+    carregarPerfis();
   </script>
 </body>
 </html>
