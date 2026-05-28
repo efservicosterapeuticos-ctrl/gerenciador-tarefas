@@ -779,6 +779,23 @@ body {
 /* touch-action global — elimina delay de 300ms */
 button, .btn, .nav-item, .perfil-card { touch-action: manipulation; }
 
+/* ===== TOGGLE FILTROS ===== */
+.filters-ocultos { display: none !important; }
+
+.topbar-toggle-filters {
+  opacity: 0.55;
+  transition: opacity var(--transition), color var(--transition);
+}
+.topbar-toggle-filters:hover { opacity: 1; }
+.topbar-toggle-filters.toggle-ativo {
+  opacity: 1;
+  color: var(--gold);
+}
+
+@media (max-width: 768px) {
+  .topbar-toggle-filters { display: none !important; }
+}
+
 /* ===== FAB — Nova Tarefa (mobile only) ===== */
 .fab {
   display: none;
