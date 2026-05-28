@@ -28,6 +28,9 @@ async function criarTarefa(payload) {
     .single();
   if (error) throw error;
   registrarHistorico(data.id, 'Tarefa criada', `Status inicial: ${payload.status}`);
+  if (payload.atribuido_a && payload.atribuido_a !== sessao.id) {
+    criarNotificacao(payload.atribuido_a, `Nova tarefa atribuída: "${payload.titulo}"`);
+  }
   return data;
 }
 

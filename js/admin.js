@@ -23,7 +23,10 @@ function configurarAbas() {
       document.getElementById('topbar-title').textContent = TAB_TITLES[tabName] || tabName;
 
       const topbarActions = document.getElementById('topbar-actions');
-      topbarActions.style.display = tabName === 'tarefas' ? 'flex' : 'none';
+      Array.from(topbarActions.children).forEach(child => {
+        child.style.display = tabName === 'tarefas' ? '' : 'none';
+      });
+      topbarActions.style.display = 'flex';
 
       if (tabName === 'dashboard') renderDashboardAdmin(_tarefasCache, _usuarios, _pipelines);
     });
@@ -336,6 +339,11 @@ async function abrirModalEditarTarefa(id) {
     if (checklistEdit.length > 0 || (tarefa.checklist !== undefined && tarefa.checklist !== null)) payload.checklist = checklistEdit;
     await editarTarefa(id, payload);
     registrarHistorico(id, 'Tarefa editada', '');
+    const sessaoEdit = getSessao();
+    const novoAtribuido = document.getElementById('t-usuario').value;
+    if (novoAtribuido && novoAtribuido !== tarefa.atribuido_a && novoAtribuido !== sessaoEdit.id) {
+      criarNotificacao(novoAtribuido, `Tarefa atribuída a você: "${payload.titulo}"`);
+    }
     if (novoStatus === 'concluida' && tarefa.recorrencia && tarefa.recorrencia !== 'nenhuma') {
       await criarProximaRecorrencia({ ...tarefa, ...payload });
     }
