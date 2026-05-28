@@ -771,18 +771,122 @@ body {
 .tab-content.active { display: block; }
 
 /* ===== RESPONSIVO ===== */
+@keyframes slideUpSheet {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* touch-action global — elimina delay de 300ms em todos os botões */
+button, .btn, .task-card, .nav-item, .perfil-card { touch-action: manipulation; }
+
 @media (max-width: 768px) {
-  .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
-  .main { margin-left: 0; }
-  .main-content { padding: 16px; }
-  .kanban-board { min-height: auto; }
-  .dash-grid { grid-template-columns: 1fr; }
-  .topbar { padding: 0 16px; }
+  /* ---- Sidebar ---- */
+  .sidebar { transform: translateX(-100%); transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); }
   .sidebar.sidebar-open { transform: translateX(0); z-index: 101; }
   .sidebar-overlay.active { display: block; }
   .hamburger-btn { display: flex !important; }
-  .search-input { width: 140px; }
-  .search-input:focus { width: 160px; }
+  .main { margin-left: 0; }
+  .main-content { padding: 14px; overflow-x: hidden; }
+
+  /* ---- Topbar ---- */
+  .topbar { padding: 0 14px; height: 52px; gap: 8px; }
+  .topbar-title { font-size: 1rem; }
+  .topbar-right { gap: 6px; flex-shrink: 1; min-width: 0; }
+  .search-input { width: 100px; font-size: 14px; }
+  .search-input:focus { width: 130px; }
+
+  /* ---- Kanban — scroll com snap ---- */
+  .kanban-board {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 4px 20px;
+    gap: 12px;
+    min-height: auto;
+  }
+  .kanban-column {
+    flex: 0 0 84vw;
+    max-width: 84vw;
+    scroll-snap-align: start;
+    max-height: none;
+  }
+  .kanban-column:last-child { margin-right: 4px; }
+  .task-card { padding: 12px 14px; }
+  .task-card:hover,
+  .task-card.prioridade-alta:hover,
+  .task-card.prioridade-media:hover,
+  .task-card.prioridade-baixa:hover { transform: none; box-shadow: var(--shadow-sm); }
+  .task-actions { flex-wrap: wrap; gap: 6px; }
+  .btn.btn-sm { min-height: 38px; padding: 6px 14px; }
+
+  /* ---- Dashboard ---- */
+  .dash-grid { grid-template-columns: 1fr; gap: 12px; }
+  .dash-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+  .stat-card { padding: 14px 12px; }
+  .stat-number { font-size: 1.8rem; }
+
+  /* ---- Modal — bottom sheet ---- */
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal {
+    border-radius: 20px 20px 0 0;
+    max-width: 100%;
+    width: 100%;
+    max-height: 88vh;
+    overflow-y: auto;
+    padding: 8px 20px 24px;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    animation: slideUpSheet 0.28s cubic-bezier(0.4,0,0.2,1);
+  }
+  .modal::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 99px;
+    margin: 12px auto 16px;
+  }
+  .modal h3 { margin-bottom: 16px; }
+  .modal-actions { flex-direction: column-reverse; gap: 8px; }
+  .modal-actions .btn { width: 100%; text-align: center; justify-content: center; min-height: 44px; }
+
+  /* ---- Forms — 16px previne zoom no iOS ---- */
+  .form-group input,
+  .form-group select,
+  .form-group textarea { font-size: 16px; }
+
+  /* ---- Botões ---- */
+  .btn-primary, .btn-outline, .btn-danger { min-height: 40px; }
+}
+
+@media (max-width: 480px) {
+  /* ---- Login full-screen ---- */
+  .login-container { padding: 0; max-width: 100%; height: 100dvh; }
+  .login-card {
+    min-height: 100dvh;
+    border-radius: 0;
+    padding: 52px 28px 32px;
+    padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---- Profile grid ---- */
+  .perfis-grid { gap: 10px; margin: 16px 0 4px; }
+  .perfil-card { min-width: 76px; padding: 12px 14px; }
+  .perfil-avatar { width: 40px; height: 40px; font-size: 1.1rem; }
+
+  /* ---- Esconde filtros dropdowns, mantém busca e sino ---- */
+  #topbar-filters select,
+  #topbar-actions select { display: none !important; }
+  .search-input { width: 120px; }
+  .search-input:focus { width: 150px; }
+
+  /* ---- Kanban ---- */
+  .kanban-column { flex: 0 0 88vw; max-width: 88vw; }
+  .main-content { padding: 10px; }
+
+  /* ---- Stats ---- */
+  .stat-card.stat-atrasada { grid-column: 1 / -1; }
 }
 
 /* ===== TEMAS ===== */
