@@ -1,14 +1,42 @@
 const STATUS_LABEL = { pendente: 'Pendente', em_andamento: 'Em andamento', concluida: 'Concluída' };
 const PRIORIDADE_LABEL = { alta: 'Alta', media: 'Média', baixa: 'Baixa' };
 
-function renderizarTarefas(tarefas, isAdmin = false) {
+let _pipelinesKanban = [];
+
+function renderizarKanban(tarefas, pipelines, isAdmin = false) {
+  _pipelinesKanban = pipelines;
   const container = document.getElementById('tasks-container');
-  if (!tarefas.length) {
-    container.innerHTML = '<p class="empty-state">Nenhuma tarefa encontrada.</p>';
+  container.className = 'kanban-board';
+
+  if (!pipelines.length) {
+    container.innerHTML = '<p class="empty-state">Nenhum pipeline criado. Crie um pipeline primeiro.</p>';
     return;
   }
 
-  container.innerHTML = tarefas.map(t => `
+  container.innerHTML = pipelines.map(p => {
+    const tarefasColuna = tarefas.filter(t => t.pipeline_id === p.id);
+    return `
+      <div class="kanban-column">
+        <div class="kanban-column-header prioridade-header-${p.prioridade}">
+          <div class="kanban-column-title">
+            <span>${p.nome}</span>
+            <span class="badge badge-${p.prioridade}">${PRIORIDADE_LABEL[p.prioridade]}</span>
+          </div>
+          <span class="kanban-count">${tarefasColuna.length}</span>
+        </div>
+        <div class="kanban-cards" data-pipeline-id="${p.id}">
+          ${tarefasColuna.map(t => renderCardKanban(t, isAdmin)).join('')}
+          ${tarefasColuna.length === 0 ? '<div class="kanban-empty">Sem tarefas</div>' : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  if (isAdmin) inicializarDragDrop();
+}
+
+function renderCardKanban(t, isAdmin) {
+  return `
     <div class="task-card prioridade-${t.prioridade}" data-id="${t.id}">
       <div class="task-card-header">
         <span class="task-titulo">${t.titulo}</span>
@@ -17,7 +45,6 @@ function renderizarTarefas(tarefas, isAdmin = false) {
       ${t.descricao ? `<p class="task-descricao">${t.descricao}</p>` : ''}
       <div class="task-meta">
         <span class="badge badge-${t.status}">${STATUS_LABEL[t.status]}</span>
-        <span class="task-pipeline">${t.pipeline?.nome || ''}</span>
         ${isAdmin && t.usuario ? `<span class="task-pipeline">👤 ${t.usuario.nome}</span>` : ''}
       </div>
       <div class="task-actions">
@@ -28,7 +55,46 @@ function renderizarTarefas(tarefas, isAdmin = false) {
         ` : ''}
       </div>
     </div>
-  `).join('');
+  `;
+}
+
+function inicializarDragDrop() {
+  document.querySelectorAll('.kanban-cards').forEach(col => {
+    Sortable.create(col, {
+      group: 'kanban',
+      animation: 150,
+      ghostClass: 'task-card-ghost',
+      chosenClass: 'task-card-chosen',
+      dragClass: 'task-card-drag',
+      onEnd: async (evt) => {
+        const taskId = evt.item.dataset.id;
+        const novoPipelineId = evt.to.dataset.pipelineId;
+        const antigoPipelineId = evt.from.dataset.pipelineId;
+        if (novoPipelineId !== antigoPipelineId) {
+          await editarTarefa(taskId, { pipeline_id: novoPipelineId });
+          const task = _tarefasCache.find(t => t.id === taskId);
+          if (task) {
+            task.pipeline_id = novoPipelineId;
+            const novoPipeline = _pipelinesKanban.find(p => p.id === novoPipelineId);
+            if (novoPipeline) task.pipeline = { nome: novoPipeline.nome, prioridade: novoPipeline.prioridade };
+          }
+          atualizarContadores();
+        }
+      }
+    });
+  });
+}
+
+function atualizarContadores() {
+  document.querySelectorAll('.kanban-column').forEach(col => {
+    const cards = col.querySelectorAll('.task-card').length;
+    col.querySelector('.kanban-count').textContent = cards;
+    const emptyEl = col.querySelector('.kanban-empty');
+    if (cards > 0 && emptyEl) emptyEl.remove();
+    if (cards === 0 && !emptyEl) {
+      col.querySelector('.kanban-cards').insertAdjacentHTML('beforeend', '<div class="kanban-empty">Sem tarefas</div>');
+    }
+  });
 }
 
 function renderBotoesStatus(tarefa) {

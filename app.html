@@ -6,6 +6,7 @@
   <title>Minhas Tarefas</title>
   <link rel="stylesheet" href="css/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
 </head>
 <body>
   <header class="topbar">
@@ -20,9 +21,6 @@
 
   <main class="main-content">
     <div class="filters">
-      <select id="filter-pipeline">
-        <option value="">Todos os pipelines</option>
-      </select>
       <select id="filter-status">
         <option value="">Todos os status</option>
         <option value="pendente">Pendente</option>
@@ -62,7 +60,7 @@
       await carregarPipelinesNoFiltro('filter-pipeline');
       await carregarTarefasUsuario(sessao.id);
 
-      ['filter-pipeline', 'filter-status', 'filter-prioridade'].forEach(id => {
+      ['filter-status', 'filter-prioridade'].forEach(id => {
         document.getElementById(id).addEventListener('change', () => aplicarFiltros());
       });
     })();

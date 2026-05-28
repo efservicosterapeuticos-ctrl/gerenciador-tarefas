@@ -52,29 +52,27 @@ async function excluirTarefa(id) {
 }
 
 async function carregarTarefasUsuario(userId) {
-  const tarefas = await getTarefasUsuario(userId);
+  const [tarefas, pipelines] = await Promise.all([getTarefasUsuario(userId), getPipelines()]);
   _tarefasCache = tarefas;
-  renderizarTarefas(tarefas);
+  renderizarKanban(tarefas, pipelines, false);
 }
 
 async function carregarTarefasAdmin() {
   const tarefas = await getTarefasTodas();
   _tarefasCache = tarefas;
-  renderizarTarefas(tarefas, true);
+  renderizarKanban(tarefas, _pipelines, true);
 }
 
 function aplicarFiltros() {
-  const pipeline = document.getElementById('filter-pipeline')?.value;
   const status = document.getElementById('filter-status')?.value;
   const prioridade = document.getElementById('filter-prioridade')?.value;
   const usuario = document.getElementById('filter-usuario')?.value;
 
   let resultado = _tarefasCache;
-  if (pipeline) resultado = resultado.filter(t => t.pipeline_id === pipeline);
   if (status) resultado = resultado.filter(t => t.status === status);
   if (prioridade) resultado = resultado.filter(t => t.prioridade === prioridade);
   if (usuario) resultado = resultado.filter(t => t.atribuido_a === usuario);
 
   const isAdmin = getSessao()?.perfil === 'admin';
-  renderizarTarefas(resultado, isAdmin);
+  renderizarKanban(resultado, _pipelines || _pipelinesKanban, isAdmin);
 }
