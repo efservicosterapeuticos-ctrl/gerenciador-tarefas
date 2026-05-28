@@ -40,6 +40,14 @@ function renderizarKanban(tarefas, pipelines, isAdmin = false) {
   }).join('');
 
   if (isAdmin) inicializarDragDrop();
+
+  // Stagger cards on render
+  let delay = 0;
+  container.querySelectorAll('.task-card').forEach(card => {
+    card.classList.add('card-enter');
+    card.style.animationDelay = `${delay}s`;
+    delay += 0.045;
+  });
 }
 
 function renderCardKanban(t, isAdmin) {

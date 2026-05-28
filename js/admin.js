@@ -16,10 +16,16 @@ function configurarAbas() {
   document.querySelectorAll('.nav-item[data-tab]').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.nav-item[data-tab]').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+      document.querySelectorAll('.tab-content').forEach(c => {
+        c.classList.add('hidden');
+        c.classList.remove('tab-animate');
+      });
       tab.classList.add('active');
       const tabName = tab.dataset.tab;
-      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+      const tabEl = document.getElementById(`tab-${tabName}`);
+      tabEl.classList.remove('hidden');
+      requestAnimationFrame(() => tabEl.classList.add('tab-animate'));
+
       document.getElementById('topbar-title').textContent = TAB_TITLES[tabName] || tabName;
 
       const topbarActions = document.getElementById('topbar-actions');

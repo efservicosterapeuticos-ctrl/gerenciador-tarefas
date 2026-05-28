@@ -1,3 +1,32 @@
+// ===== ANIMAÇÕES =====
+function animarNumero(el, target, duration = 700) {
+  let startTime = null;
+  const step = (ts) => {
+    if (!startTime) startTime = ts;
+    const progress = Math.min((ts - startTime) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(eased * target);
+    if (progress < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function ativarAnimacoesDashboard() {
+  // Stat numbers count-up
+  document.querySelectorAll('.stat-number[data-num]').forEach((el, i) => {
+    el.classList.add('stat-enter');
+    el.style.animationDelay = `${i * 0.08}s`;
+    const target = parseInt(el.dataset.num);
+    setTimeout(() => animarNumero(el, target), i * 80);
+  });
+  // Progress bars expand
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.progress-bar[data-w]').forEach(bar => {
+      bar.style.width = bar.dataset.w + '%';
+    });
+  });
+}
+
 // ===== DASHBOARD ADMIN =====
 function renderDashboardAdmin(tarefas, usuarios, pipelines) {
   const container = document.getElementById('dashboard-container');
@@ -30,24 +59,24 @@ function renderDashboardAdmin(tarefas, usuarios, pipelines) {
   container.innerHTML = `
     <div class="dash-stats">
       <div class="stat-card">
-        <div class="stat-number">${total}</div>
+        <div class="stat-number" data-num="${total}">0</div>
         <div class="stat-label">Total de Tarefas</div>
       </div>
       <div class="stat-card stat-pendente">
-        <div class="stat-number">${pendentes}</div>
+        <div class="stat-number" data-num="${pendentes}">0</div>
         <div class="stat-label">Pendentes</div>
       </div>
       <div class="stat-card stat-andamento">
-        <div class="stat-number">${emAndamento}</div>
+        <div class="stat-number" data-num="${emAndamento}">0</div>
         <div class="stat-label">Em Andamento</div>
       </div>
       <div class="stat-card stat-concluida">
-        <div class="stat-number">${concluidas}</div>
+        <div class="stat-number" data-num="${concluidas}">0</div>
         <div class="stat-label">Concluídas</div>
       </div>
       ${atrasadas > 0 ? `
         <div class="stat-card stat-atrasada">
-          <div class="stat-number">${atrasadas}</div>
+          <div class="stat-number" data-num="${atrasadas}">0</div>
           <div class="stat-label">Atrasadas</div>
         </div>
       ` : ''}
@@ -58,7 +87,7 @@ function renderDashboardAdmin(tarefas, usuarios, pipelines) {
         <h4 class="dash-card-title">Taxa de Conclusão Geral</h4>
         <div class="taxa-big ${taxaGeral >= 70 ? 'taxa-big-ok' : taxaGeral >= 40 ? 'taxa-big-medio' : 'taxa-big-baixo'}">${taxaGeral}%</div>
         <div class="progress-bar-wrap">
-          <div class="progress-bar progress-bar-primary" style="width: ${taxaGeral}%"></div>
+          <div class="progress-bar progress-bar-primary" data-w="${taxaGeral}" style="width:0%"></div>
         </div>
         <p class="dash-sub">${concluidas} de ${total} tarefas concluídas</p>
       </div>
@@ -73,7 +102,7 @@ function renderDashboardAdmin(tarefas, usuarios, pipelines) {
               <span class="dash-row-count">${u.feitas}/${u.total}</span>
             </div>
             <div class="progress-bar-wrap">
-              <div class="progress-bar progress-bar-primary" style="width: ${u.taxa}%"></div>
+              <div class="progress-bar progress-bar-primary" data-w="${u.taxa}" style="width:0%"></div>
             </div>
             <span class="dash-taxa">${u.taxa}%</span>
           </div>
@@ -91,7 +120,7 @@ function renderDashboardAdmin(tarefas, usuarios, pipelines) {
               <span class="dash-row-count">${p.total}</span>
             </div>
             <div class="progress-bar-wrap">
-              <div class="progress-bar progress-bar-pipeline" style="width: ${Math.round((p.total / maxPipeline) * 100)}%"></div>
+              <div class="progress-bar progress-bar-pipeline" data-w="${Math.round((p.total / maxPipeline) * 100)}" style="width:0%"></div>
             </div>
             <span class="dash-taxa">${p.taxa}% concluído</span>
           </div>
@@ -104,6 +133,7 @@ function renderDashboardAdmin(tarefas, usuarios, pipelines) {
       </div>
     </div>
   `;
+  requestAnimationFrame(() => ativarAnimacoesDashboard());
 }
 
 function renderGraficoPrioridade(tarefas) {
@@ -121,7 +151,7 @@ function renderGraficoPrioridade(tarefas) {
         <span class="dash-row-count">${alta}</span>
       </div>
       <div class="progress-bar-wrap">
-        <div class="progress-bar" style="width:${pct(alta)}%; background: var(--prioridade-alta)"></div>
+        <div class="progress-bar" data-w="${pct(alta)}" style="width:0%; background: var(--prioridade-alta)"></div>
       </div>
       <span class="dash-taxa">${pct(alta)}%</span>
     </div>
@@ -131,7 +161,7 @@ function renderGraficoPrioridade(tarefas) {
         <span class="dash-row-count">${media}</span>
       </div>
       <div class="progress-bar-wrap">
-        <div class="progress-bar" style="width:${pct(media)}%; background: var(--prioridade-media)"></div>
+        <div class="progress-bar" data-w="${pct(media)}" style="width:0%; background: var(--prioridade-media)"></div>
       </div>
       <span class="dash-taxa">${pct(media)}%</span>
     </div>
@@ -141,7 +171,7 @@ function renderGraficoPrioridade(tarefas) {
         <span class="dash-row-count">${baixa}</span>
       </div>
       <div class="progress-bar-wrap">
-        <div class="progress-bar" style="width:${pct(baixa)}%; background: var(--prioridade-baixa)"></div>
+        <div class="progress-bar" data-w="${pct(baixa)}" style="width:0%; background: var(--prioridade-baixa)"></div>
       </div>
       <span class="dash-taxa">${pct(baixa)}%</span>
     </div>
@@ -181,24 +211,24 @@ function renderDashboardUsuario(tarefas, nomeUsuario) {
 
     <div class="dash-stats">
       <div class="stat-card">
-        <div class="stat-number">${total}</div>
+        <div class="stat-number" data-num="${total}">0</div>
         <div class="stat-label">Minhas Tarefas</div>
       </div>
       <div class="stat-card stat-pendente">
-        <div class="stat-number">${pendentes}</div>
+        <div class="stat-number" data-num="${pendentes}">0</div>
         <div class="stat-label">Pendentes</div>
       </div>
       <div class="stat-card stat-andamento">
-        <div class="stat-number">${emAndamento}</div>
+        <div class="stat-number" data-num="${emAndamento}">0</div>
         <div class="stat-label">Em Andamento</div>
       </div>
       <div class="stat-card stat-concluida">
-        <div class="stat-number">${concluidas}</div>
+        <div class="stat-number" data-num="${concluidas}">0</div>
         <div class="stat-label">Concluídas</div>
       </div>
       ${atrasadas > 0 ? `
         <div class="stat-card stat-atrasada">
-          <div class="stat-number">${atrasadas}</div>
+          <div class="stat-number" data-num="${atrasadas}">0</div>
           <div class="stat-label">Atrasadas</div>
         </div>
       ` : ''}
@@ -209,7 +239,7 @@ function renderDashboardUsuario(tarefas, nomeUsuario) {
         <h4 class="dash-card-title">Minha Taxa de Conclusão</h4>
         <div class="taxa-big taxa-big-${taxa >= 70 ? 'ok' : taxa >= 40 ? 'medio' : 'baixo'}">${taxa}%</div>
         <div class="progress-bar-wrap progress-bar-wrap-lg">
-          <div class="progress-bar progress-bar-primary" style="width: ${taxa}%"></div>
+          <div class="progress-bar progress-bar-primary" data-w="${taxa}" style="width:0%"></div>
         </div>
         <p class="dash-sub">${concluidas} de ${total} tarefas concluídas</p>
       </div>
@@ -237,4 +267,5 @@ function renderDashboardUsuario(tarefas, nomeUsuario) {
       </div>
     </div>
   `;
+  requestAnimationFrame(() => ativarAnimacoesDashboard());
 }

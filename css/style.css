@@ -127,6 +127,29 @@ body {
   display: flex;
   flex-direction: column;
   z-index: 100;
+  overflow: hidden;
+}
+
+.sidebar::before {
+  content: '';
+  position: absolute;
+  width: 220px; height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(200,151,58,0.1) 0%, transparent 70%);
+  bottom: 40px; right: -80px;
+  animation: pulseOrb 5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.sidebar::after {
+  content: '';
+  position: absolute;
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(200,151,58,0.07) 0%, transparent 70%);
+  top: 30px; left: -50px;
+  animation: pulseOrb 7s ease-in-out infinite reverse;
+  pointer-events: none;
 }
 
 .sidebar-logo {
@@ -1302,7 +1325,54 @@ html[data-theme="nevoa"] .prioridade-header-baixa { background: #D1FAE5; }
 
 .btn-trocar-perfil:hover { color: rgba(200,151,58,0.8); background: rgba(200,151,58,0.08); }
 
-@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn       { from { opacity: 0; transform: translateY(8px); }  to { opacity: 1; transform: translateY(0); } }
+@keyframes slideInRight { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes slideInUp    { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes countUp      { from { opacity: 0; transform: translateY(10px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes shimmerBar   { from { background-position: -200% 0; } to { background-position: 200% 0; } }
+@keyframes pulseOrb     { 0%,100% { transform: scale(1); opacity:0.6; } 50% { transform: scale(1.2); opacity:1; } }
+@keyframes glowBorder   { 0%,100% { box-shadow: 0 0 0 0 rgba(200,151,58,0); } 50% { box-shadow: 0 0 16px 2px rgba(200,151,58,0.25); } }
+
+/* Tab / view transitions */
+.tab-animate { animation: slideInRight 0.26s cubic-bezier(0.4,0,0.2,1) both; }
+.view-animate { animation: slideInUp 0.24s cubic-bezier(0.4,0,0.2,1) both; }
+
+/* Kanban card stagger */
+.card-enter { animation: slideInUp 0.3s cubic-bezier(0.4,0,0.2,1) both; }
+
+/* Stat card stagger */
+.stat-enter { animation: slideInUp 0.35s cubic-bezier(0.4,0,0.2,1) both; }
+
+/* Number counter */
+.num-pop { animation: countUp 0.4s cubic-bezier(0.4,0,0.2,1) both; }
+
+/* Progress bar transition override */
+.progress-bar { transition: width 0.8s cubic-bezier(0.4,0,0.2,1) !important; }
+
+/* Shimmer loading */
+.loading {
+  background: linear-gradient(90deg, var(--cream-dark) 25%, var(--border) 50%, var(--cream-dark) 75%);
+  background-size: 200% 100%;
+  animation: shimmerBar 1.6s infinite;
+  border-radius: var(--radius);
+  color: transparent !important;
+  user-select: none;
+}
+
+/* Button ripple */
+.btn { overflow: hidden; }
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(255,255,255,0.28) 0%, transparent 65%);
+  opacity: 0;
+  transform: scale(0);
+  transition: transform 0.45s ease, opacity 0.45s ease;
+  pointer-events: none;
+  border-radius: inherit;
+}
+.btn:active::after { transform: scale(2.5); opacity: 1; transition: 0s; }
 
 /* ===== FOTO DE PERFIL — lista de usuários ===== */
 .usuario-foto {
@@ -1544,3 +1614,52 @@ html[data-theme="nevoa"] .prioridade-header-baixa { background: #D1FAE5; }
 html[data-theme="noite"] .notif-item.notif-nao-lida { background: rgba(212,160,67,0.07); }
 html[data-theme="noite"] .notif-item.notif-nao-lida:hover { background: rgba(212,160,67,0.12); }
 html[data-theme="noite"] .notif-toast { background: #2A1E14; }
+
+/* ===== MAIN PAGE ENTRANCE ===== */
+.main { animation: slideInRight 0.35s cubic-bezier(0.4,0,0.2,1) both; }
+.sidebar { animation: fadeIn 0.3s ease both; }
+
+/* ===== KANBAN COLUMN HEADER glow on hover ===== */
+.kanban-column { transition: transform var(--transition); }
+.kanban-column:hover { transform: translateY(-2px); }
+
+/* ===== DASH CARD entrance ===== */
+.dash-card { animation: slideInUp 0.35s cubic-bezier(0.4,0,0.2,1) both; }
+.dash-card:nth-child(1) { animation-delay: 0.05s; }
+.dash-card:nth-child(2) { animation-delay: 0.12s; }
+.dash-card:nth-child(3) { animation-delay: 0.19s; }
+.dash-card:nth-child(4) { animation-delay: 0.26s; }
+
+/* ===== PIPELINE / USUARIO ITEMS entrance ===== */
+.pipeline-item, .usuario-item { animation: slideInUp 0.3s cubic-bezier(0.4,0,0.2,1) both; }
+
+/* ===== LOGIN CARD glassmorphism premium ===== */
+.login-card {
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(200,151,58,0.22);
+  border-radius: 20px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.45);
+  animation: slideInUp 0.35s cubic-bezier(0.4,0,0.2,1) both;
+}
+
+.login-card h1 { color: rgba(255,255,255,0.92); }
+.login-card .login-subtitle { color: rgba(255,255,255,0.45); }
+.login-card .form-group label { color: rgba(255,255,255,0.45); }
+.login-card .form-group input {
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(200,151,58,0.25);
+  color: rgba(255,255,255,0.9);
+  text-align: center;
+  font-size: 1.25rem;
+  letter-spacing: 0.3em;
+}
+.login-card .form-group input:focus {
+  border-color: var(--gold);
+  background: rgba(200,151,58,0.08);
+  box-shadow: 0 0 0 3px rgba(200,151,58,0.12);
+}
+.login-card .form-group input::placeholder { color: rgba(255,255,255,0.2); }
+.login-card .alert-error { background: rgba(192,57,43,0.18); color: #FF8A80; border: 1px solid rgba(192,57,43,0.3); }
+.login-empresa { color: rgba(200,151,58,0.8) !important; }
