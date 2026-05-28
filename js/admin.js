@@ -157,16 +157,19 @@ function abrirModalNovaTarefa() {
   document.getElementById('form-tarefa').addEventListener('submit', async (e) => {
     e.preventDefault();
     const usuarioId = document.getElementById('t-usuario').value;
+    const prazoVal = document.getElementById('t-prazo').value;
+    const recorrenciaVal = document.getElementById('t-recorrencia').value;
+    const checklistVal = coletarChecklist();
     const payload = {
       titulo: document.getElementById('t-titulo').value,
       descricao: document.getElementById('t-descricao').value,
       pipeline_id: document.getElementById('t-pipeline').value,
       atribuido_a: usuarioId,
       prioridade: document.getElementById('t-prioridade').value,
-      prazo: document.getElementById('t-prazo').value || null,
-      recorrencia: document.getElementById('t-recorrencia').value,
-      checklist: coletarChecklist(),
       status: 'pendente',
+      ...(prazoVal && { prazo: prazoVal }),
+      ...(recorrenciaVal && recorrenciaVal !== 'nenhuma' && { recorrencia: recorrenciaVal }),
+      ...(checklistVal.length > 0 && { checklist: checklistVal }),
     };
     const novaTarefa = await criarTarefa(payload);
     const nomeUsuario = _usuarios.find(u => u.id === usuarioId)?.nome || '';
@@ -283,6 +286,9 @@ async function abrirModalEditarTarefa(id) {
   document.getElementById('form-editar-tarefa').addEventListener('submit', async (e) => {
     e.preventDefault();
     const novoStatus = document.getElementById('t-status').value;
+    const prazoEdit = document.getElementById('t-prazo').value;
+    const recorrenciaEdit = document.getElementById('t-recorrencia').value;
+    const checklistEdit = coletarChecklist(true, checklistExistente);
     const payload = {
       titulo: document.getElementById('t-titulo').value,
       descricao: document.getElementById('t-descricao').value,
@@ -290,10 +296,11 @@ async function abrirModalEditarTarefa(id) {
       atribuido_a: document.getElementById('t-usuario').value,
       prioridade: document.getElementById('t-prioridade').value,
       status: novoStatus,
-      prazo: document.getElementById('t-prazo').value || null,
-      recorrencia: document.getElementById('t-recorrencia').value,
-      checklist: coletarChecklist(true, checklistExistente),
     };
+    // Only include new columns when migration has been run (avoids PGRST204)
+    if (prazoEdit || tarefa.prazo !== undefined) payload.prazo = prazoEdit || null;
+    if (recorrenciaEdit !== 'nenhuma' || tarefa.recorrencia !== undefined) payload.recorrencia = recorrenciaEdit;
+    if (checklistEdit.length > 0 || (tarefa.checklist !== undefined && tarefa.checklist !== null)) payload.checklist = checklistEdit;
     await editarTarefa(id, payload);
     registrarHistorico(id, 'Tarefa editada', '');
     if (novoStatus === 'concluida' && tarefa.recorrencia && tarefa.recorrencia !== 'nenhuma') {
