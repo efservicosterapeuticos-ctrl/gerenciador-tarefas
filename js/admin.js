@@ -4,7 +4,6 @@ let _usuarios = [];
 async function iniciarAdmin() {
   await Promise.all([carregarPipelinesAdmin(), carregarUsuariosAdmin()]);
   await carregarTarefasAdmin();
-
   configurarAbas();
   configurarBotoes();
   configurarFiltrosAdmin();
@@ -36,6 +35,7 @@ function configurarBotoes() {
   document.getElementById('btn-nova-tarefa').addEventListener('click', abrirModalNovaTarefa);
   document.getElementById('btn-novo-pipeline').addEventListener('click', abrirModalNovoPipeline);
   document.getElementById('btn-novo-usuario').addEventListener('click', abrirModalNovoUsuario);
+  document.getElementById('btn-exportar-pdf').addEventListener('click', () => window.print());
 }
 
 function configurarFiltrosAdmin() {
@@ -56,6 +56,8 @@ function configurarFiltrosAdmin() {
   ['filter-pipeline', 'filter-usuario', 'filter-status'].forEach(id => {
     document.getElementById(id).addEventListener('change', () => aplicarFiltros());
   });
+
+  document.getElementById('search-tarefas').addEventListener('input', () => aplicarFiltros());
 }
 
 // ===== CARREGAR DADOS =====
@@ -68,6 +70,28 @@ async function carregarUsuariosAdmin() {
   const { data } = await sb.from('users').select('id, nome, perfil').order('nome');
   _usuarios = data || [];
   renderizarUsuarios(_usuarios);
+}
+
+// ===== CHECKLIST HELPERS =====
+function adicionarItemChecklist(texto = '') {
+  const container = document.getElementById('checklist-items');
+  const row = document.createElement('div');
+  row.className = 'modal-checklist-row';
+  row.innerHTML = `
+    <input type="text" placeholder="Descreva o item..." value="${texto}" />
+    <button type="button" class="btn-rm-item" onclick="this.parentElement.remove()">×</button>
+  `;
+  container.appendChild(row);
+  row.querySelector('input').focus();
+}
+
+function coletarChecklist(preservarEstado = false, checklistExistente = []) {
+  const rows = document.querySelectorAll('#checklist-items .modal-checklist-row');
+  return Array.from(rows).map((row, i) => {
+    const texto = row.querySelector('input[type="text"]').value.trim();
+    const concluida = preservarEstado && checklistExistente[i]?.concluida === true;
+    return texto ? { texto, concluida } : null;
+  }).filter(Boolean);
 }
 
 // ===== MODAIS — TAREFAS =====
@@ -105,6 +129,24 @@ function abrirModalNovaTarefa() {
           <option value="baixa">Baixa</option>
         </select>
       </div>
+      <div class="form-group">
+        <label>Prazo</label>
+        <input type="date" id="t-prazo" />
+      </div>
+      <div class="form-group">
+        <label>Recorrência</label>
+        <select id="t-recorrencia">
+          <option value="nenhuma">Sem recorrência</option>
+          <option value="diaria">Diária</option>
+          <option value="semanal">Semanal</option>
+          <option value="mensal">Mensal</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Checklist</label>
+        <div id="checklist-items"></div>
+        <button type="button" class="btn btn-sm btn-outline" style="margin-top:4px" onclick="adicionarItemChecklist()">+ Adicionar item</button>
+      </div>
       <div class="modal-actions">
         <button type="button" class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
         <button type="submit" class="btn btn-primary">Criar Tarefa</button>
@@ -114,13 +156,25 @@ function abrirModalNovaTarefa() {
 
   document.getElementById('form-tarefa').addEventListener('submit', async (e) => {
     e.preventDefault();
-    await criarTarefa({
+    const usuarioId = document.getElementById('t-usuario').value;
+    const payload = {
       titulo: document.getElementById('t-titulo').value,
       descricao: document.getElementById('t-descricao').value,
       pipeline_id: document.getElementById('t-pipeline').value,
-      atribuido_a: document.getElementById('t-usuario').value,
+      atribuido_a: usuarioId,
       prioridade: document.getElementById('t-prioridade').value,
+      prazo: document.getElementById('t-prazo').value || null,
+      recorrencia: document.getElementById('t-recorrencia').value,
+      checklist: coletarChecklist(),
       status: 'pendente',
+    };
+    const novaTarefa = await criarTarefa(payload);
+    const nomeUsuario = _usuarios.find(u => u.id === usuarioId)?.nome || '';
+    await notificarWhatsApp({
+      tarefa: payload.titulo,
+      usuario: nomeUsuario,
+      prazo: payload.prazo,
+      prioridade: payload.prioridade,
     });
     fecharModal();
     await carregarTarefasAdmin();
@@ -130,6 +184,8 @@ function abrirModalNovaTarefa() {
 async function abrirModalEditarTarefa(id) {
   const tarefa = _tarefasCache.find(t => t.id === id);
   if (!tarefa) return;
+
+  const checklistExistente = Array.isArray(tarefa.checklist) ? tarefa.checklist : [];
 
   abrirModal(`
     <h3>Editar Tarefa</h3>
@@ -170,6 +226,37 @@ async function abrirModalEditarTarefa(id) {
           <option value="concluida" ${tarefa.status === 'concluida' ? 'selected' : ''}>Concluída</option>
         </select>
       </div>
+      <div class="form-group">
+        <label>Prazo</label>
+        <input type="date" id="t-prazo" value="${tarefa.prazo || ''}" />
+      </div>
+      <div class="form-group">
+        <label>Recorrência</label>
+        <select id="t-recorrencia">
+          <option value="nenhuma" ${!tarefa.recorrencia || tarefa.recorrencia === 'nenhuma' ? 'selected' : ''}>Sem recorrência</option>
+          <option value="diaria" ${tarefa.recorrencia === 'diaria' ? 'selected' : ''}>Diária</option>
+          <option value="semanal" ${tarefa.recorrencia === 'semanal' ? 'selected' : ''}>Semanal</option>
+          <option value="mensal" ${tarefa.recorrencia === 'mensal' ? 'selected' : ''}>Mensal</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Checklist</label>
+        <div id="checklist-items">
+          ${checklistExistente.map(item => `
+            <div class="modal-checklist-row">
+              <input type="text" value="${item.texto}" />
+              <button type="button" class="btn-rm-item" onclick="this.parentElement.remove()">×</button>
+            </div>
+          `).join('')}
+        </div>
+        <button type="button" class="btn btn-sm btn-outline" style="margin-top:4px" onclick="adicionarItemChecklist()">+ Adicionar item</button>
+      </div>
+      <details class="historico-wrap">
+        <summary>Histórico de alterações</summary>
+        <div class="historico-list" id="historico-container">
+          <p class="loading">Carregando...</p>
+        </div>
+      </details>
       <div class="modal-actions">
         <button type="button" class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
         <button type="submit" class="btn btn-primary">Salvar</button>
@@ -177,16 +264,41 @@ async function abrirModalEditarTarefa(id) {
     </form>
   `);
 
+  // Load history asynchronously
+  getHistoricoTarefa(id).then(historico => {
+    const container = document.getElementById('historico-container');
+    if (!container) return;
+    if (!historico.length) {
+      container.innerHTML = '<p class="dash-empty">Sem registros ainda.</p>';
+      return;
+    }
+    container.innerHTML = historico.map(h => `
+      <div class="historico-item">
+        <div class="historico-acao">${h.acao} <span class="historico-detalhe">${h.detalhe || ''}</span></div>
+        <div class="historico-data">${h.usuario?.nome || ''} · ${new Date(h.criado_em).toLocaleString('pt-BR')}</div>
+      </div>
+    `).join('');
+  });
+
   document.getElementById('form-editar-tarefa').addEventListener('submit', async (e) => {
     e.preventDefault();
-    await editarTarefa(id, {
+    const novoStatus = document.getElementById('t-status').value;
+    const payload = {
       titulo: document.getElementById('t-titulo').value,
       descricao: document.getElementById('t-descricao').value,
       pipeline_id: document.getElementById('t-pipeline').value,
       atribuido_a: document.getElementById('t-usuario').value,
       prioridade: document.getElementById('t-prioridade').value,
-      status: document.getElementById('t-status').value,
-    });
+      status: novoStatus,
+      prazo: document.getElementById('t-prazo').value || null,
+      recorrencia: document.getElementById('t-recorrencia').value,
+      checklist: coletarChecklist(true, checklistExistente),
+    };
+    await editarTarefa(id, payload);
+    registrarHistorico(id, 'Tarefa editada', '');
+    if (novoStatus === 'concluida' && tarefa.recorrencia && tarefa.recorrencia !== 'nenhuma') {
+      await criarProximaRecorrencia({ ...tarefa, ...payload });
+    }
     fecharModal();
     await carregarTarefasAdmin();
   });
@@ -393,4 +505,29 @@ async function confirmarExcluirUsuario(id) {
     fecharModal();
     await carregarUsuariosAdmin();
   });
+}
+
+// ===== CONFIGURAÇÕES =====
+function abrirConfiguracoesAdmin() {
+  const cfg = JSON.parse(localStorage.getItem('gt-config') || '{}');
+  abrirModal(`
+    <h3>Configurações</h3>
+    <div class="form-group">
+      <label>Webhook WhatsApp (URL)</label>
+      <input type="url" id="cfg-webhook" value="${cfg.webhookUrl || ''}" placeholder="https://seu-bot.com/webhook" />
+      <small style="display:block; margin-top:4px; font-size:0.75rem; color:var(--text-muted);">
+        Quando uma tarefa é criada, o sistema envia um POST com os dados para este endpoint.
+      </small>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarConfiguracoes()">Salvar</button>
+    </div>
+  `);
+}
+
+function salvarConfiguracoes() {
+  const webhookUrl = document.getElementById('cfg-webhook').value.trim();
+  localStorage.setItem('gt-config', JSON.stringify({ webhookUrl }));
+  fecharModal();
 }

@@ -30,14 +30,29 @@
       <div class="sf-label">Usuário</div>
       <div class="sf-value" id="sidebar-user-name"></div>
       <button class="sf-logout" id="logout-btn">Sair →</button>
+      <div class="theme-picker-label">Tema</div>
+      <div class="theme-picker">
+        <button class="theme-dot theme-elis" data-theme="elis" title="Elis (padrão)"></button>
+        <button class="theme-dot theme-noite" data-theme="noite" title="Noite"></button>
+        <button class="theme-dot theme-nevoa" data-theme="nevoa" title="Névoa"></button>
+      </div>
     </div>
   </aside>
+
+  <!-- SIDEBAR OVERLAY (mobile) -->
+  <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
   <!-- MAIN -->
   <div class="main">
     <div class="topbar">
+      <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
       <span class="topbar-title" id="topbar-title">Minhas Tarefas</span>
       <div class="topbar-right">
+        <input type="search" id="search-tarefas" class="search-input" placeholder="Buscar..." />
         <select id="filter-status" class="filters" style="margin:0">
           <option value="">Todos os status</option>
           <option value="pendente">Pendente</option>
@@ -50,6 +65,7 @@
           <option value="media">Média</option>
           <option value="baixa">Baixa</option>
         </select>
+        <button class="btn btn-outline btn-sm" onclick="window.print()">PDF</button>
       </div>
     </div>
 
@@ -74,6 +90,7 @@
     <div class="modal" id="modal-content"></div>
   </div>
 
+  <script src="js/theme.js"></script>
   <script src="js/supabase.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/tasks.js"></script>
@@ -92,11 +109,32 @@
         window.location.href = 'index.html';
       });
 
+      // Theme picker
+      const temaCurrent = localStorage.getItem('gt-tema') || 'elis';
+      document.querySelectorAll('.theme-dot').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.theme === temaCurrent);
+        btn.addEventListener('click', () => aplicarTema(btn.dataset.theme));
+      });
+
+      // Mobile sidebar
+      function toggleSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const open = sidebar.classList.toggle('sidebar-open');
+        overlay.classList.toggle('active', open);
+      }
+      document.getElementById('hamburger-btn').addEventListener('click', toggleSidebar);
+      document.getElementById('sidebar-overlay').addEventListener('click', () => {
+        document.querySelector('.sidebar').classList.remove('sidebar-open');
+        document.getElementById('sidebar-overlay').classList.remove('active');
+      });
+
       await carregarTarefasUsuario(sessao.id);
 
       ['filter-status', 'filter-prioridade'].forEach(id => {
         document.getElementById(id).addEventListener('change', () => aplicarFiltros());
       });
+      document.getElementById('search-tarefas').addEventListener('input', () => aplicarFiltros());
 
       document.querySelectorAll('.nav-item[data-view]').forEach(tab => {
         tab.addEventListener('click', () => {

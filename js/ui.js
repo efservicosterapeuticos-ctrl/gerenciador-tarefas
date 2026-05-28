@@ -1,7 +1,14 @@
 const STATUS_LABEL = { pendente: 'Pendente', em_andamento: 'Em andamento', concluida: 'Concluída' };
 const PRIORIDADE_LABEL = { alta: 'Alta', media: 'Média', baixa: 'Baixa' };
+const RECORRENCIA_LABEL = { diaria: '↻ Diária', semanal: '↻ Semanal', mensal: '↻ Mensal' };
 
 let _pipelinesKanban = [];
+
+function formatarData(dataStr) {
+  if (!dataStr) return '';
+  const [ano, mes, dia] = dataStr.split('-');
+  return `${dia}/${mes}/${ano}`;
+}
 
 function renderizarKanban(tarefas, pipelines, isAdmin = false) {
   _pipelinesKanban = pipelines;
@@ -36,8 +43,17 @@ function renderizarKanban(tarefas, pipelines, isAdmin = false) {
 }
 
 function renderCardKanban(t, isAdmin) {
+  const hoje = new Date().toISOString().split('T')[0];
+  const atrasada = t.prazo && t.prazo < hoje && t.status !== 'concluida';
+  const prazoHoje = t.prazo && t.prazo === hoje && t.status !== 'concluida';
+
+  const checklist = Array.isArray(t.checklist) ? t.checklist : [];
+  const checkTotal = checklist.length;
+  const checkFeitos = checklist.filter(i => i.concluida).length;
+  const checkPct = checkTotal > 0 ? Math.round((checkFeitos / checkTotal) * 100) : 0;
+
   return `
-    <div class="task-card prioridade-${t.prioridade}" data-id="${t.id}">
+    <div class="task-card prioridade-${t.prioridade}${atrasada ? ' atrasada' : ''}" data-id="${t.id}">
       <div class="task-card-header">
         <span class="task-titulo">${t.titulo}</span>
         <span class="badge badge-${t.prioridade}">${PRIORIDADE_LABEL[t.prioridade]}</span>
@@ -45,8 +61,26 @@ function renderCardKanban(t, isAdmin) {
       ${t.descricao ? `<p class="task-descricao">${t.descricao}</p>` : ''}
       <div class="task-meta">
         <span class="badge badge-${t.status}">${STATUS_LABEL[t.status]}</span>
+        ${atrasada ? `<span class="badge badge-atrasada">Atrasada</span>` : ''}
         ${isAdmin && t.usuario ? `<span class="task-pipeline">👤 ${t.usuario.nome}</span>` : ''}
+        ${t.prazo ? `<span class="task-prazo ${atrasada ? 'prazo-atrasado' : prazoHoje ? 'prazo-hoje' : ''}">📅 ${formatarData(t.prazo)}</span>` : ''}
+        ${t.recorrencia && t.recorrencia !== 'nenhuma' ? `<span class="badge badge-recorrente">${RECORRENCIA_LABEL[t.recorrencia] || t.recorrencia}</span>` : ''}
       </div>
+      ${checkTotal > 0 ? `
+        <div class="checklist-wrap">
+          ${checklist.slice(0, 3).map((item, i) => `
+            <label class="checklist-item ${item.concluida ? 'concluida' : ''}">
+              <input type="checkbox" ${item.concluida ? 'checked' : ''} onchange="toggleCheckItem('${t.id}', ${i}, this.checked)" />
+              <span>${item.texto}</span>
+            </label>
+          `).join('')}
+          ${checkTotal > 3 ? `<span class="checklist-label">+${checkTotal - 3} mais itens</span>` : ''}
+        </div>
+        <div class="checklist-progress-bar">
+          <div class="checklist-progress-fill" style="width: ${checkPct}%"></div>
+        </div>
+        <span class="checklist-label">${checkFeitos}/${checkTotal} itens concluídos</span>
+      ` : ''}
       <div class="task-actions">
         ${!isAdmin ? renderBotoesStatus(t) : ''}
         ${isAdmin ? `
@@ -56,6 +90,31 @@ function renderCardKanban(t, isAdmin) {
       </div>
     </div>
   `;
+}
+
+async function toggleCheckItem(tarefaId, itemIndex, concluida) {
+  const tarefa = _tarefasCache.find(t => t.id === tarefaId);
+  if (!tarefa || !Array.isArray(tarefa.checklist)) return;
+
+  const novoChecklist = tarefa.checklist.map((it, i) =>
+    i === itemIndex ? { ...it, concluida } : it
+  );
+
+  await editarTarefa(tarefaId, { checklist: novoChecklist });
+  tarefa.checklist = novoChecklist;
+
+  const card = document.querySelector(`.task-card[data-id="${tarefaId}"]`);
+  if (card) {
+    const feitos = novoChecklist.filter(i => i.concluida).length;
+    const total = novoChecklist.length;
+    const pct = total > 0 ? Math.round((feitos / total) * 100) : 0;
+    const fill = card.querySelector('.checklist-progress-fill');
+    const label = card.querySelector('.checklist-label');
+    if (fill) fill.style.width = `${pct}%`;
+    if (label) label.textContent = `${feitos}/${total} itens concluídos`;
+    const item = card.querySelectorAll('.checklist-item')[itemIndex];
+    if (item) item.classList.toggle('concluida', concluida);
+  }
 }
 
 function inicializarDragDrop() {
@@ -72,6 +131,7 @@ function inicializarDragDrop() {
         const antigoPipelineId = evt.from.dataset.pipelineId;
         if (novoPipelineId !== antigoPipelineId) {
           await editarTarefa(taskId, { pipeline_id: novoPipelineId });
+          registrarHistorico(taskId, 'Pipeline alterado', '');
           const task = _tarefasCache.find(t => t.id === taskId);
           if (task) {
             task.pipeline_id = novoPipelineId;

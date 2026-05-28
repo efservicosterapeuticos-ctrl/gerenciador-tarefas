@@ -8,6 +8,9 @@ function renderDashboardAdmin(tarefas, usuarios, pipelines) {
   const concluidas = tarefas.filter(t => t.status === 'concluida').length;
   const taxaGeral = total > 0 ? Math.round((concluidas / total) * 100) : 0;
 
+  const hoje = new Date().toISOString().split('T')[0];
+  const atrasadas = tarefas.filter(t => t.prazo && t.prazo < hoje && t.status !== 'concluida').length;
+
   const porUsuario = usuarios.map(u => {
     const minhas = tarefas.filter(t => t.atribuido_a === u.id);
     const feitas = minhas.filter(t => t.status === 'concluida').length;
@@ -42,12 +45,18 @@ function renderDashboardAdmin(tarefas, usuarios, pipelines) {
         <div class="stat-number">${concluidas}</div>
         <div class="stat-label">Concluídas</div>
       </div>
+      ${atrasadas > 0 ? `
+        <div class="stat-card stat-atrasada">
+          <div class="stat-number">${atrasadas}</div>
+          <div class="stat-label">Atrasadas</div>
+        </div>
+      ` : ''}
     </div>
 
     <div class="dash-grid">
       <div class="dash-card">
         <h4 class="dash-card-title">Taxa de Conclusão Geral</h4>
-        <div class="taxa-big">${taxaGeral}%</div>
+        <div class="taxa-big ${taxaGeral >= 70 ? 'taxa-big-ok' : taxaGeral >= 40 ? 'taxa-big-medio' : 'taxa-big-baixo'}">${taxaGeral}%</div>
         <div class="progress-bar-wrap">
           <div class="progress-bar progress-bar-primary" style="width: ${taxaGeral}%"></div>
         </div>
@@ -149,9 +158,19 @@ function renderDashboardUsuario(tarefas, nomeUsuario) {
   const concluidas = tarefas.filter(t => t.status === 'concluida').length;
   const taxa = total > 0 ? Math.round((concluidas / total) * 100) : 0;
 
+  const hoje = new Date().toISOString().split('T')[0];
+  const atrasadas = tarefas.filter(t => t.prazo && t.prazo < hoje && t.status !== 'concluida').length;
+
   const proximas = tarefas
-    .filter(t => t.status === 'pendente')
+    .filter(t => t.status !== 'concluida')
     .sort((a, b) => {
+      // Sort by: overdue first, then by prazo, then by priority
+      const aAtrasada = a.prazo && a.prazo < hoje ? 0 : 1;
+      const bAtrasada = b.prazo && b.prazo < hoje ? 0 : 1;
+      if (aAtrasada !== bAtrasada) return aAtrasada - bAtrasada;
+      if (a.prazo && b.prazo) return a.prazo.localeCompare(b.prazo);
+      if (a.prazo) return -1;
+      if (b.prazo) return 1;
       const ordem = { alta: 0, media: 1, baixa: 2 };
       return ordem[a.prioridade] - ordem[b.prioridade];
     })
@@ -177,6 +196,12 @@ function renderDashboardUsuario(tarefas, nomeUsuario) {
         <div class="stat-number">${concluidas}</div>
         <div class="stat-label">Concluídas</div>
       </div>
+      ${atrasadas > 0 ? `
+        <div class="stat-card stat-atrasada">
+          <div class="stat-number">${atrasadas}</div>
+          <div class="stat-label">Atrasadas</div>
+        </div>
+      ` : ''}
     </div>
 
     <div class="dash-grid">
@@ -190,18 +215,24 @@ function renderDashboardUsuario(tarefas, nomeUsuario) {
       </div>
 
       <div class="dash-card">
-        <h4 class="dash-card-title">Próximas Pendentes</h4>
+        <h4 class="dash-card-title">Próximas Tarefas</h4>
         ${proximas.length === 0
           ? '<p class="dash-empty">Nenhuma tarefa pendente 🎉</p>'
-          : proximas.map(t => `
-            <div class="dash-tarefa-item">
-              <span class="badge badge-${t.prioridade}">${PRIORIDADE_LABEL[t.prioridade]}</span>
-              <div class="dash-tarefa-info">
-                <span class="dash-tarefa-titulo">${t.titulo}</span>
-                <span class="dash-tarefa-pipeline">${t.pipeline?.nome || ''}</span>
-              </div>
-            </div>
-          `).join('')
+          : proximas.map(t => {
+              const atrasada = t.prazo && t.prazo < hoje;
+              return `
+                <div class="dash-tarefa-item">
+                  <span class="badge badge-${t.prioridade}">${PRIORIDADE_LABEL[t.prioridade]}</span>
+                  <div class="dash-tarefa-info">
+                    <span class="dash-tarefa-titulo">${t.titulo}</span>
+                    <span class="dash-tarefa-pipeline">
+                      ${t.pipeline?.nome || ''}
+                      ${t.prazo ? `· <span class="${atrasada ? 'prazo-atrasado' : ''}" style="font-size:0.7rem">${atrasada ? '⚠ Atrasada — ' : ''}${formatarData(t.prazo)}</span>` : ''}
+                    </span>
+                  </div>
+                </div>
+              `;
+            }).join('')
         }
       </div>
     </div>
