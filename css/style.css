@@ -1663,3 +1663,120 @@ html[data-theme="noite"] .notif-toast { background: #2A1E14; }
 .login-card .form-group input::placeholder { color: rgba(255,255,255,0.2); }
 .login-card .alert-error { background: rgba(192,57,43,0.18); color: #FF8A80; border: 1px solid rgba(192,57,43,0.3); }
 .login-empresa { color: rgba(200,151,58,0.8) !important; }
+
+/* ===== LOGIN DOIS PASSOS ===== */
+.step-hidden { display: none !important; }
+
+#step-perfil, #step-pin {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+#step-perfil.step-visible, #step-pin.step-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.perfis-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin: 20px 0 8px;
+}
+
+.perfis-loading {
+  color: rgba(255,255,255,0.35);
+  font-size: 0.85rem;
+  text-align: center;
+  width: 100%;
+}
+
+.perfil-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(200,151,58,0.2);
+  border-radius: 12px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+  min-width: 90px;
+  opacity: 0;
+  animation: cardIn 0.3s ease forwards;
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.perfil-card:hover {
+  background: rgba(200,151,58,0.12);
+  border-color: rgba(200,151,58,0.5);
+  transform: translateY(-2px);
+}
+.perfil-card:active { transform: translateY(0) scale(0.97); }
+
+.perfil-avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  color: #1a0e00;
+  font-weight: 700;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.perfil-nome {
+  color: rgba(255,255,255,0.8);
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Step 2 — perfil selecionado */
+.perfil-selecionado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.perfil-avatar-lg {
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  color: #1a0e00;
+  font-weight: 700;
+  font-size: 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 20px rgba(200,151,58,0.3);
+}
+
+.perfil-nome-sel {
+  color: rgba(255,255,255,0.85);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.btn-voltar {
+  background: none;
+  border: none;
+  color: rgba(200,151,58,0.65);
+  font-size: 0.8rem;
+  cursor: pointer;
+  margin-top: 12px;
+  padding: 4px 0;
+  transition: color 0.15s;
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+.btn-voltar:hover { color: var(--gold); }

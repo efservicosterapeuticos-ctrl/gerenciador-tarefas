@@ -1,8 +1,14 @@
-async function loginComPin(pin) {
+async function getUsuariosLogin() {
+  const { data } = await sb.from('users').select('id, nome').order('nome');
+  return data || [];
+}
+
+async function loginComPin(userId, pin) {
   try {
     const { data, error } = await sb
       .from('users')
       .select('id, nome, perfil')
+      .eq('id', userId)
       .eq('pin', pin)
       .single();
 

@@ -10,32 +10,44 @@
 </head>
 <body class="login-page">
   <div class="login-container">
-    <div class="login-card">
+    <div class="login-card" id="login-card">
       <p class="login-empresa">Grupo Elis Formaio</p>
       <h1>Gerenciador de Tarefas</h1>
-      <p class="login-subtitle">Digite seu PIN para entrar</p>
 
-      <div id="login-error" class="alert alert-error hidden"></div>
-
-      <form id="login-form">
-        <div class="form-group">
-          <label for="pin">PIN</label>
-          <input
-            type="password"
-            id="pin"
-            name="pin"
-            maxlength="6"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            placeholder="••••••"
-            autocomplete="off"
-            required
-          />
+      <!-- PASSO 1: Selecionar perfil -->
+      <div id="step-perfil">
+        <p class="login-subtitle">Quem é você?</p>
+        <div id="perfis-grid" class="perfis-grid">
+          <p class="perfis-loading">Carregando...</p>
         </div>
-        <button type="submit" class="btn btn-primary btn-full" id="login-btn">
-          Entrar
-        </button>
-      </form>
+      </div>
+
+      <!-- PASSO 2: PIN -->
+      <div id="step-pin" class="step-hidden">
+        <div class="perfil-selecionado">
+          <div class="perfil-avatar-lg" id="perfil-avatar-lg"></div>
+          <span class="perfil-nome-sel" id="perfil-nome-sel"></span>
+        </div>
+        <p class="login-subtitle">Digite seu PIN</p>
+        <div id="login-error" class="alert alert-error hidden"></div>
+        <form id="login-form">
+          <div class="form-group">
+            <input
+              type="password"
+              id="pin"
+              name="pin"
+              maxlength="6"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              placeholder="••••••"
+              autocomplete="off"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary btn-full" id="login-btn">Entrar</button>
+        </form>
+        <button class="btn-voltar" id="btn-voltar">← Trocar perfil</button>
+      </div>
     </div>
   </div>
 
@@ -47,8 +59,43 @@
       window.location.href = _sessaoAtual.perfil === 'admin' ? 'admin.html' : 'app.html';
     }
 
+    let _usuarioSelecionado = null;
+
+    function mostrarStepPerfil() {
+      const stepPin = document.getElementById('step-pin');
+      const stepPerfil = document.getElementById('step-perfil');
+      stepPin.classList.add('step-hidden');
+      stepPin.classList.remove('step-visible');
+      setTimeout(() => {
+        stepPerfil.classList.remove('step-hidden');
+        requestAnimationFrame(() => stepPerfil.classList.add('step-visible'));
+      }, 180);
+      _usuarioSelecionado = null;
+    }
+
+    function mostrarStepPin(usuario) {
+      _usuarioSelecionado = usuario;
+      document.getElementById('perfil-avatar-lg').textContent = usuario.nome.charAt(0).toUpperCase();
+      document.getElementById('perfil-nome-sel').textContent = usuario.nome;
+      document.getElementById('login-error').classList.add('hidden');
+      document.getElementById('pin').value = '';
+
+      const stepPerfil = document.getElementById('step-perfil');
+      const stepPin = document.getElementById('step-pin');
+      stepPerfil.classList.add('step-hidden');
+      stepPerfil.classList.remove('step-visible');
+      setTimeout(() => {
+        stepPin.classList.remove('step-hidden');
+        requestAnimationFrame(() => stepPin.classList.add('step-visible'));
+        setTimeout(() => document.getElementById('pin').focus(), 80);
+      }, 180);
+    }
+
+    document.getElementById('btn-voltar').addEventListener('click', mostrarStepPerfil);
+
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (!_usuarioSelecionado) return;
       const pin = document.getElementById('pin').value.trim();
       const btn = document.getElementById('login-btn');
       const errorEl = document.getElementById('login-error');
@@ -57,7 +104,7 @@
       btn.disabled = true;
       btn.textContent = 'Entrando...';
 
-      const result = await loginComPin(pin);
+      const result = await loginComPin(_usuarioSelecionado.id, pin);
 
       if (result.success) {
         window.location.href = result.perfil === 'admin' ? 'admin.html' : 'app.html';
@@ -68,6 +115,31 @@
         btn.textContent = 'Entrar';
       }
     });
+
+    (async () => {
+      const usuarios = await getUsuariosLogin();
+      const grid = document.getElementById('perfis-grid');
+      if (!usuarios.length) {
+        grid.innerHTML = '<p class="perfis-loading">Nenhum usuário cadastrado.</p>';
+        return;
+      }
+      grid.innerHTML = usuarios.map((u, i) => `
+        <button class="perfil-card" data-id="${u.id}" data-nome="${u.nome}" style="animation-delay:${i * 0.07}s">
+          <div class="perfil-avatar">${u.nome.charAt(0).toUpperCase()}</div>
+          <span class="perfil-nome">${u.nome}</span>
+        </button>
+      `).join('');
+
+      grid.querySelectorAll('.perfil-card').forEach(card => {
+        card.addEventListener('click', () => {
+          mostrarStepPin({ id: card.dataset.id, nome: card.dataset.nome });
+        });
+      });
+
+      requestAnimationFrame(() => {
+        document.getElementById('step-perfil').classList.add('step-visible');
+      });
+    })();
   </script>
 </body>
 </html>
