@@ -28,11 +28,23 @@ function configurarAbas() {
 
       document.getElementById('topbar-title').textContent = TAB_TITLES[tabName] || tabName;
 
-      const topbarActions = document.getElementById('topbar-actions');
-      Array.from(topbarActions.children).forEach(child => {
-        child.style.display = tabName === 'tarefas' ? '' : 'none';
-      });
-      topbarActions.style.display = 'flex';
+      // Fecha sidebar no mobile ao trocar de aba
+      if (window.innerWidth <= 768) {
+        document.querySelector('.sidebar').classList.remove('sidebar-open');
+        const ov = document.getElementById('sidebar-overlay');
+        if (ov) ov.classList.remove('active');
+      }
+
+      // Controla visibilidade da faixa de filtros apenas no desktop
+      if (window.innerWidth > 768) {
+        const topbarActions = document.getElementById('topbar-actions');
+        const oculto = topbarActions.classList.contains('filters-ocultos');
+        if (!oculto) {
+          Array.from(topbarActions.children).forEach(child => {
+            child.style.display = tabName === 'tarefas' ? '' : 'none';
+          });
+        }
+      }
 
       if (tabName === 'dashboard') renderDashboardAdmin(_tarefasCache, _usuarios, _pipelines);
     });

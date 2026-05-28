@@ -190,8 +190,19 @@
           requestAnimationFrame(() => viewEl.classList.add('view-animate'));
           document.getElementById('topbar-title').textContent = view === 'kanban' ? 'Minhas Tarefas' : 'Meu Dashboard';
 
-          const filterWrap = document.getElementById('topbar-filters');
-          if (filterWrap) filterWrap.style.display = view === 'kanban' ? 'flex' : 'none';
+          // Fecha sidebar no mobile ao trocar de view
+          if (window.innerWidth <= 768) {
+            document.querySelector('.sidebar').classList.remove('sidebar-open');
+            const ov = document.getElementById('sidebar-overlay');
+            if (ov) ov.classList.remove('active');
+          }
+
+          // Controla filtros apenas no desktop
+          if (window.innerWidth > 768) {
+            const filterWrap = document.getElementById('topbar-filters');
+            const oculto = filterWrap && filterWrap.classList.contains('filters-ocultos');
+            if (filterWrap && !oculto) filterWrap.style.display = view === 'kanban' ? 'flex' : 'none';
+          }
 
           if (view === 'dashboard') renderDashboardUsuario(_tarefasCache, sessao.nome);
         });

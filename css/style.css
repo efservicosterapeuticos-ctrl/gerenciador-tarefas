@@ -870,8 +870,6 @@ button, .btn, .nav-item, .perfil-card { touch-action: manipulation; }
   .main-content {
     padding: 12px;
     overflow-x: hidden;
-    height: calc(100vh - 54px);
-    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -883,8 +881,8 @@ button, .btn, .nav-item, .perfil-card { touch-action: manipulation; }
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     gap: 12px;
-    padding: 0 2px 20px;
-    min-height: calc(100vh - 120px);
+    padding: 0 2px 80px;
+    min-height: 60vh;
     align-items: flex-start;
   }
   .kanban-board::-webkit-scrollbar { display: none; }
@@ -893,9 +891,12 @@ button, .btn, .nav-item, .perfil-card { touch-action: manipulation; }
     max-width: 88vw;
     scroll-snap-align: center;
     max-height: none;
-    min-height: 200px;
+    min-height: 120px;
   }
-  .kanban-cards { overflow-y: visible; max-height: none; }
+  .kanban-cards {
+    overflow-y: visible;
+    max-height: none;
+  }
 
   /* ---- Task cards ---- */
   .task-card { padding: 12px 14px; }
