@@ -12,12 +12,16 @@ async function iniciarAdmin() {
 
 // ===== ABAS =====
 function configurarAbas() {
-  document.querySelectorAll('.nav-tab').forEach(tab => {
+  document.querySelectorAll('.nav-tab[data-tab]').forEach(tab => {
     tab.addEventListener('click', () => {
-      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav-tab[data-tab]').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
       tab.classList.add('active');
       document.getElementById(`tab-${tab.dataset.tab}`).classList.remove('hidden');
+
+      if (tab.dataset.tab === 'dashboard') {
+        renderDashboardAdmin(_tarefasCache, _usuarios, _pipelines);
+      }
     });
   });
 }
@@ -320,6 +324,51 @@ function abrirModalNovoUsuario() {
       perfil: document.getElementById('u-perfil').value,
     });
     if (error) { alert('Erro ao criar usuário: ' + error.message); return; }
+    fecharModal();
+    await carregarUsuariosAdmin();
+  });
+}
+
+async function abrirModalEditarUsuario(id) {
+  const usuario = _usuarios.find(u => u.id === id);
+  if (!usuario) return;
+
+  abrirModal(`
+    <h3>Editar Usuário</h3>
+    <form id="form-editar-usuario">
+      <div class="form-group">
+        <label>Nome</label>
+        <input type="text" id="u-nome" value="${usuario.nome}" required />
+      </div>
+      <div class="form-group">
+        <label>Perfil</label>
+        <select id="u-perfil">
+          <option value="usuario" ${usuario.perfil === 'usuario' ? 'selected' : ''}>Usuário</option>
+          <option value="admin" ${usuario.perfil === 'admin' ? 'selected' : ''}>Admin</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Novo PIN (deixe em branco para não alterar)</label>
+        <input type="password" id="u-pin" minlength="4" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="••••••" />
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  `);
+
+  document.getElementById('form-editar-usuario').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+      nome: document.getElementById('u-nome').value,
+      perfil: document.getElementById('u-perfil').value,
+    };
+    const novoPin = document.getElementById('u-pin').value;
+    if (novoPin) payload.pin = novoPin;
+
+    const { error } = await sb.from('users').update(payload).eq('id', id);
+    if (error) { alert('Erro ao salvar: ' + error.message); return; }
     fecharModal();
     await carregarUsuariosAdmin();
   });

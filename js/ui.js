@@ -153,10 +153,16 @@ function renderizarUsuarios(usuarios) {
   container.innerHTML = usuarios.map(u => `
     <div class="usuario-item" data-id="${u.id}">
       <div class="usuario-info">
-        <span class="usuario-nome">${u.nome}</span>
-        <span class="badge">${u.perfil === 'admin' ? 'Admin' : 'Usuário'}</span>
+        <div class="usuario-avatar">${u.nome.charAt(0).toUpperCase()}</div>
+        <div>
+          <div class="usuario-nome">${u.nome}</div>
+          <div class="usuario-meta">
+            <span class="badge badge-perfil-${u.perfil}">${u.perfil === 'admin' ? 'Admin' : 'Usuário'}</span>
+          </div>
+        </div>
       </div>
       <div class="usuario-actions">
+        <button class="btn btn-sm btn-outline" onclick="abrirModalEditarUsuario('${u.id}')">Editar</button>
         <button class="btn btn-sm btn-danger" onclick="confirmarExcluirUsuario('${u.id}')">Remover</button>
       </div>
     </div>
