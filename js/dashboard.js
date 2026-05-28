@@ -93,10 +93,10 @@ function renderDashboardAdmin(tarefas, usuarios, pipelines) {
       </div>
 
       <div class="dash-card">
-        <h4 class="dash-card-title">Progresso por Usuário</h4>
+        <h4 class="dash-card-title">Progresso por Usuário <span class="dash-card-hint">clique para detalhes</span></h4>
         ${porUsuario.length === 0 ? '<p class="dash-empty">Nenhuma tarefa atribuída</p>' : ''}
         ${porUsuario.map(u => `
-          <div class="dash-row">
+          <div class="dash-row dash-row-user" data-userid="${u.id}" data-username="${u.nome.replace(/"/g, '&quot;')}">
             <div class="dash-row-info">
               <span class="dash-row-name">${u.nome}</span>
               <span class="dash-row-count">${u.feitas}/${u.total}</span>
@@ -133,7 +133,14 @@ function renderDashboardAdmin(tarefas, usuarios, pipelines) {
       </div>
     </div>
   `;
-  requestAnimationFrame(() => ativarAnimacoesDashboard());
+  requestAnimationFrame(() => {
+    ativarAnimacoesDashboard();
+    container.querySelectorAll('.dash-row-user').forEach(row => {
+      row.addEventListener('click', () => {
+        renderDashboardIndividualAdmin(row.dataset.userid, row.dataset.username);
+      });
+    });
+  });
 }
 
 function renderGraficoPrioridade(tarefas) {
@@ -179,7 +186,7 @@ function renderGraficoPrioridade(tarefas) {
 }
 
 // ===== DASHBOARD INDIVIDUAL =====
-function renderDashboardUsuario(tarefas, nomeUsuario) {
+function renderDashboardUsuario(tarefas, nomeUsuario, backFn = null) {
   const container = document.getElementById('dashboard-container');
 
   const total = tarefas.length;
@@ -207,6 +214,7 @@ function renderDashboardUsuario(tarefas, nomeUsuario) {
     .slice(0, 5);
 
   container.innerHTML = `
+    ${backFn ? `<button class="btn btn-outline btn-sm dash-back-btn" id="btn-back-dash">← Visão Geral</button>` : ''}
     <div class="dash-welcome">Olá, <strong>${nomeUsuario}</strong> 👋</div>
 
     <div class="dash-stats">
@@ -267,5 +275,19 @@ function renderDashboardUsuario(tarefas, nomeUsuario) {
       </div>
     </div>
   `;
-  requestAnimationFrame(() => ativarAnimacoesDashboard());
+  requestAnimationFrame(() => {
+    ativarAnimacoesDashboard();
+    if (backFn) {
+      const backBtn = document.getElementById('btn-back-dash');
+      if (backBtn) backBtn.addEventListener('click', backFn);
+    }
+  });
+}
+
+// ===== DASHBOARD INDIVIDUAL (admin drill-down) =====
+function renderDashboardIndividualAdmin(userId, nomeUsuario) {
+  const tarefasUsuario = (_tarefasCache || []).filter(t => t.atribuido_a === userId);
+  renderDashboardUsuario(tarefasUsuario, nomeUsuario, () => {
+    renderDashboardAdmin(_tarefasCache, _usuarios, _pipelines);
+  });
 }

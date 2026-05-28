@@ -117,6 +117,11 @@ function coletarChecklist(preservarEstado = false, checklistExistente = []) {
 
 // ===== MODAIS — TAREFAS =====
 function abrirModalNovaTarefa() {
+  const sessaoAtual = getSessao();
+  const usuariosOpts = _usuarios.map(u =>
+    `<option value="${u.id}" ${u.id === sessaoAtual?.id ? 'selected' : ''}>${u.nome}${u.id === sessaoAtual?.id ? ' (você)' : ''}</option>`
+  ).join('');
+
   abrirModal(`
     <h3>Nova Tarefa</h3>
     <form id="form-tarefa">
@@ -138,8 +143,7 @@ function abrirModalNovaTarefa() {
       <div class="form-group">
         <label>Atribuir a</label>
         <select id="t-usuario" required>
-          <option value="">Selecione...</option>
-          ${_usuarios.map(u => `<option value="${u.id}">${u.nome}</option>`).join('')}
+          ${usuariosOpts}
         </select>
       </div>
       <div class="form-group">
@@ -210,6 +214,7 @@ async function abrirModalEditarTarefa(id) {
   if (!tarefa) return;
 
   const checklistExistente = Array.isArray(tarefa.checklist) ? tarefa.checklist : [];
+  const sessaoAdmin = getSessao();
 
   abrirModal(`
     <h3>Editar Tarefa</h3>
@@ -231,7 +236,7 @@ async function abrirModalEditarTarefa(id) {
       <div class="form-group">
         <label>Atribuir a</label>
         <select id="t-usuario" required>
-          ${_usuarios.map(u => `<option value="${u.id}" ${u.id === tarefa.atribuido_a ? 'selected' : ''}>${u.nome}</option>`).join('')}
+          ${_usuarios.map(u => `<option value="${u.id}" ${u.id === tarefa.atribuido_a ? 'selected' : ''}>${u.nome}${u.id === sessaoAdmin?.id ? ' (você)' : ''}</option>`).join('')}
         </select>
       </div>
       <div class="form-group">

@@ -721,6 +721,14 @@ body {
 .dash-row { margin-bottom: 14px; }
 .dash-row:last-child { margin-bottom: 0; }
 
+.dash-row-user { cursor: pointer; border-radius: 8px; padding: 6px 8px; margin: 0 -8px 10px; transition: background 0.15s; }
+.dash-row-user:hover { background: var(--cream-dark); }
+.dash-row-user:hover .dash-row-name { color: var(--gold); }
+
+.dash-card-hint { font-size: 0.65rem; font-weight: 400; color: var(--text-muted); margin-left: 6px; text-transform: none; letter-spacing: 0; }
+
+.dash-back-btn { margin-bottom: 16px; font-size: 0.8rem; }
+
 .dash-row-info {
   display: flex;
   align-items: center;
