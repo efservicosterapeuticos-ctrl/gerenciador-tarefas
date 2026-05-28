@@ -782,18 +782,48 @@ button, .btn, .nav-item, .perfil-card { touch-action: manipulation; }
 /* ===== TOGGLE FILTROS ===== */
 .filters-ocultos { display: none !important; }
 
-.topbar-toggle-filters {
-  opacity: 0.55;
-  transition: opacity var(--transition), color var(--transition);
+/* Botão × dentro da faixa */
+.btn-ocultar-filtros {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background var(--transition), color var(--transition);
+  touch-action: manipulation;
 }
-.topbar-toggle-filters:hover { opacity: 1; }
-.topbar-toggle-filters.toggle-ativo {
-  opacity: 1;
-  color: var(--gold);
+.btn-ocultar-filtros svg { width: 16px; height: 16px; }
+.btn-ocultar-filtros:hover { background: rgba(192,57,43,0.08); color: var(--danger); }
+
+/* Botão "Filtros" no topbar quando faixa está oculta */
+.btn-mostrar-filtros {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition), background var(--transition);
+  white-space: nowrap;
+  touch-action: manipulation;
+  flex-shrink: 0;
 }
+.btn-mostrar-filtros svg { width: 14px; height: 14px; flex-shrink: 0; }
+.btn-mostrar-filtros:hover { border-color: var(--gold); color: var(--gold); background: rgba(200,151,58,0.06); }
+.btn-mostrar-filtros.hidden { display: none !important; }
 
 @media (max-width: 768px) {
-  .topbar-toggle-filters { display: none !important; }
+  .btn-ocultar-filtros, .btn-mostrar-filtros { display: none !important; }
 }
 
 /* ===== FAB — Nova Tarefa (mobile only) ===== */
