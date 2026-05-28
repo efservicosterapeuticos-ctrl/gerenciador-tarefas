@@ -750,6 +750,18 @@ html[data-theme="noite"] .alert-error { background: rgba(224,85,85,0.15); color:
 html[data-theme="noite"] .alert-success { background: rgba(90,148,112,0.15); color: #72AB87; }
 html[data-theme="noite"] .kanban-count { background: rgba(255,255,255,0.08); }
 
+html[data-theme="noite"] .task-titulo,
+html[data-theme="noite"] .topbar-title,
+html[data-theme="noite"] .section-header h3,
+html[data-theme="noite"] .kanban-column-title,
+html[data-theme="noite"] .pipeline-nome,
+html[data-theme="noite"] .usuario-nome,
+html[data-theme="noite"] .dash-tarefa-titulo,
+html[data-theme="noite"] .stat-number,
+html[data-theme="noite"] .modal h3,
+html[data-theme="noite"] .historico-acao,
+html[data-theme="noite"] .login-card h1 { color: var(--text); }
+
 html[data-theme="nevoa"] {
   --cream: #F1F5F9;
   --cream-dark: #E2E8F0;
