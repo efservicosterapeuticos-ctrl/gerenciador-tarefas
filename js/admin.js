@@ -88,7 +88,7 @@ async function carregarPipelinesAdmin() {
 }
 
 async function carregarUsuariosAdmin() {
-  const { data } = await sb.from('users').select('id, nome, perfil').order('nome');
+  const { data } = await sb.from('users').select('id, nome, perfil, telefone').order('nome');
   _usuarios = data || [];
   renderizarUsuarios(_usuarios);
 }
@@ -197,10 +197,12 @@ function abrirModalNovaTarefa() {
       ...(checklistVal.length > 0 && { checklist: checklistVal }),
     };
     const novaTarefa = await criarTarefa(payload);
-    const nomeUsuario = _usuarios.find(u => u.id === usuarioId)?.nome || '';
+    const usuarioObj = _usuarios.find(u => u.id === usuarioId);
+    const nomeUsuario = usuarioObj?.nome || '';
     await notificarWhatsApp({
       tarefa: payload.titulo,
       usuario: nomeUsuario,
+      telefone: usuarioObj?.telefone || '',
       prazo: payload.prazo,
       prioridade: payload.prioridade,
     });
@@ -465,6 +467,11 @@ function abrirModalNovoUsuario() {
           <option value="admin">Admin</option>
         </select>
       </div>
+      <div class="form-group">
+        <label>Telefone WhatsApp</label>
+        <input type="tel" id="u-telefone" placeholder="5585999991111" />
+        <small style="color:var(--text-muted);font-size:0.72rem">Código do país + DDD + número (ex: 5585999991111)</small>
+      </div>
       <div class="modal-actions">
         <button type="button" class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
         <button type="submit" class="btn btn-primary">Criar</button>
@@ -473,10 +480,12 @@ function abrirModalNovoUsuario() {
   `);
   document.getElementById('form-usuario').addEventListener('submit', async (e) => {
     e.preventDefault();
+    const telefoneVal = document.getElementById('u-telefone').value.trim();
     const { error } = await sb.from('users').insert({
       nome: document.getElementById('u-nome').value,
       pin: document.getElementById('u-pin').value,
       perfil: document.getElementById('u-perfil').value,
+      ...(telefoneVal && { telefone: telefoneVal }),
     });
     if (error) { alert('Erro ao criar usuário: ' + error.message); return; }
     fecharModal();
@@ -503,6 +512,11 @@ async function abrirModalEditarUsuario(id) {
         </select>
       </div>
       <div class="form-group">
+        <label>Telefone WhatsApp</label>
+        <input type="tel" id="u-telefone" value="${usuario.telefone || ''}" placeholder="5585999991111" />
+        <small style="color:var(--text-muted);font-size:0.72rem">Código do país + DDD + número (ex: 5585999991111)</small>
+      </div>
+      <div class="form-group">
         <label>Novo PIN (deixe em branco para não alterar)</label>
         <input type="password" id="u-pin" minlength="4" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="••••••" />
       </div>
@@ -518,6 +532,7 @@ async function abrirModalEditarUsuario(id) {
     const payload = {
       nome: document.getElementById('u-nome').value,
       perfil: document.getElementById('u-perfil').value,
+      telefone: document.getElementById('u-telefone').value.trim() || null,
     };
     const novoPin = document.getElementById('u-pin').value;
     if (novoPin) payload.pin = novoPin;
@@ -551,10 +566,17 @@ function abrirConfiguracoesAdmin() {
   abrirModal(`
     <h3>Configurações</h3>
     <div class="form-group">
-      <label>Webhook WhatsApp (URL)</label>
-      <input type="url" id="cfg-webhook" value="${cfg.webhookUrl || ''}" placeholder="https://seu-bot.com/webhook" />
-      <small style="display:block; margin-top:4px; font-size:0.75rem; color:var(--text-muted);">
-        Quando uma tarefa é criada, o sistema envia um POST com os dados para este endpoint.
+      <label>URL do Bot WhatsApp</label>
+      <input type="url" id="cfg-webhook" value="${cfg.webhookUrl || ''}" placeholder="https://seu-bot.up.railway.app/webhook" />
+      <small style="display:block;margin-top:4px;font-size:0.72rem;color:var(--text-muted)">
+        Endereço do servidor bot. Quando uma tarefa é criada, o sistema faz um POST para este endpoint.
+      </small>
+    </div>
+    <div class="form-group">
+      <label>Token secreto</label>
+      <input type="text" id="cfg-token" value="${cfg.webhookToken || ''}" placeholder="troque-por-algo-secreto" />
+      <small style="display:block;margin-top:4px;font-size:0.72rem;color:var(--text-muted)">
+        Deve ser igual ao <code>WEBHOOK_TOKEN</code> definido no arquivo <code>.env</code> do bot.
       </small>
     </div>
     <div class="modal-actions">
@@ -566,6 +588,7 @@ function abrirConfiguracoesAdmin() {
 
 function salvarConfiguracoes() {
   const webhookUrl = document.getElementById('cfg-webhook').value.trim();
-  localStorage.setItem('gt-config', JSON.stringify({ webhookUrl }));
+  const webhookToken = document.getElementById('cfg-token').value.trim();
+  localStorage.setItem('gt-config', JSON.stringify({ webhookUrl, webhookToken }));
   fecharModal();
 }

@@ -151,7 +151,10 @@ async function notificarWhatsApp(dadosTarefa) {
   const cfg = JSON.parse(localStorage.getItem('gt-config') || '{}');
   if (!cfg.webhookUrl) return;
   try {
-    await fetch(cfg.webhookUrl, {
+    const url = cfg.webhookToken
+      ? `${cfg.webhookUrl}?token=${encodeURIComponent(cfg.webhookToken)}`
+      : cfg.webhookUrl;
+    await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tipo: 'nova_tarefa', ...dadosTarefa }),

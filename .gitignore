@@ -1,3 +1,6 @@
 .env
 .DS_Store
 Thumbs.db
+bot-webhook/node_modules/
+bot-webhook/auth_data/
+bot-webhook/.env
