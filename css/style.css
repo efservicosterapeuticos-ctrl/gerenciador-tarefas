@@ -864,8 +864,8 @@ button, .btn, .nav-item, .perfil-card { touch-action: manipulation; }
 
   /* ---- Layout base ---- */
   html, body { max-width: 100vw; overflow-x: hidden; }
-  .main { margin-left: 0 !important; width: 100%; max-width: 100vw; }
-  .main-content { padding: 12px; max-width: 100vw; overflow-x: hidden; }
+  .main { margin-left: 0 !important; width: 100%; max-width: 100vw; min-height: 100dvh; }
+  .main-content { padding: 12px; max-width: 100vw; overflow: visible; }
 
   /* ---- Sidebar ---- */
   .sidebar { transform: translateX(-100%); transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); }
