@@ -1993,3 +1993,198 @@ html[data-theme="noite"] .notif-toast { background: #2A1E14; }
   text-align: center;
 }
 .btn-voltar:hover { color: var(--gold); }
+
+/* ===== DARK PREMIUM ENHANCEMENTS (tema noite) ===== */
+
+/* Body: gradiente escuro profundo em páginas não-login */
+html[data-theme="noite"] body:not(.login-page) {
+  background: radial-gradient(ellipse at 25% 0%, #1C0A03 0%, #0D0702 55%, #080401 100%);
+  min-height: 100vh;
+}
+
+/* Overlay sutil de grade dourada */
+html[data-theme="noite"] body:not(.login-page)::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(200,151,58,0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200,151,58,0.022) 1px, transparent 1px);
+  background-size: 64px 64px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+html[data-theme="noite"] .main { position: relative; z-index: 1; }
+html[data-theme="noite"] .main-content { position: relative; z-index: 1; }
+
+/* Sidebar — mais premium */
+html[data-theme="noite"] .sidebar {
+  background: linear-gradient(180deg, #0D0702 0%, #080401 100%);
+  border-right: 1px solid rgba(200,151,58,0.08);
+}
+
+/* Topbar — vidro escuro */
+html[data-theme="noite"] .topbar {
+  background: rgba(8,4,1,0.82);
+  border-bottom: 1px solid rgba(200,151,58,0.10);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+}
+
+html[data-theme="noite"] .topbar-title {
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+}
+
+/* Section headers — mais dramáticos */
+html[data-theme="noite"] .section-header h3 {
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+  color: rgba(255,255,255,0.92);
+}
+
+/* Stat cards — glassmorphism premium */
+html[data-theme="noite"] .stat-card {
+  background: rgba(255,255,255,0.035);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(200,151,58,0.14);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+html[data-theme="noite"] .stat-card::before {
+  background: linear-gradient(90deg, rgba(200,151,58,0.7), rgba(228,185,106,0.5));
+  height: 2px;
+}
+
+html[data-theme="noite"] .stat-card.stat-andamento::before { background: rgba(76,110,174,0.8); }
+html[data-theme="noite"] .stat-card.stat-concluida::before { background: rgba(90,148,112,0.8); }
+html[data-theme="noite"] .stat-card.stat-atrasada::before  { background: rgba(224,85,85,0.8); }
+html[data-theme="noite"] .stat-card.stat-pendente::before  { background: rgba(100,80,60,0.5); }
+
+html[data-theme="noite"] .stat-number {
+  font-size: 3.25rem;
+  color: rgba(255,255,255,0.92);
+}
+
+html[data-theme="noite"] .stat-label {
+  color: rgba(200,151,58,0.7);
+  letter-spacing: 0.12em;
+}
+
+/* Kanban columns — glass */
+html[data-theme="noite"] .kanban-column {
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(200,151,58,0.10);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+
+html[data-theme="noite"] .kanban-column-header {
+  border-bottom: 1px solid rgba(200,151,58,0.10);
+}
+
+/* Task cards — glass */
+html[data-theme="noite"] .task-card {
+  background: rgba(255,255,255,0.045);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(200,151,58,0.10);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+}
+
+html[data-theme="noite"] .task-card:hover {
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(200,151,58,0.22);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.5);
+}
+
+/* Dash cards — glass premium */
+html[data-theme="noite"] .dash-card {
+  background: rgba(255,255,255,0.035);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(200,151,58,0.12);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+html[data-theme="noite"] .taxa-big {
+  font-size: 4.5rem;
+  line-height: 1;
+}
+
+html[data-theme="noite"] .dash-card-title {
+  color: rgba(200,151,58,0.65);
+  letter-spacing: 0.12em;
+}
+
+/* Pipeline / usuário items */
+html[data-theme="noite"] .pipeline-item,
+html[data-theme="noite"] .usuario-item {
+  background: rgba(255,255,255,0.035);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(200,151,58,0.10);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+
+/* Modal — glass escuro */
+html[data-theme="noite"] .modal {
+  background: rgba(14,8,3,0.90);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(200,151,58,0.20);
+  box-shadow: 0 32px 80px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+html[data-theme="noite"] .modal h3 { color: rgba(255,255,255,0.92); }
+
+/* Forms no modal */
+html[data-theme="noite"] .form-group input,
+html[data-theme="noite"] .form-group select,
+html[data-theme="noite"] .form-group textarea {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(200,151,58,0.18);
+  color: rgba(255,255,255,0.88);
+}
+
+html[data-theme="noite"] .form-group input:focus,
+html[data-theme="noite"] .form-group select:focus,
+html[data-theme="noite"] .form-group textarea:focus {
+  background: rgba(200,151,58,0.08);
+  border-color: rgba(200,151,58,0.5);
+  box-shadow: 0 0 0 3px rgba(200,151,58,0.10);
+}
+
+html[data-theme="noite"] .form-group label { color: rgba(200,151,58,0.6); }
+
+/* Botão primário no tema noite — dourado */
+html[data-theme="noite"] .btn-primary {
+  background: linear-gradient(135deg, rgba(200,151,58,0.9), rgba(160,112,40,0.9));
+  color: #0D0702;
+}
+
+html[data-theme="noite"] .btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  box-shadow: 0 4px 20px rgba(200,151,58,0.4);
+}
+
+/* Scroll bar sutil */
+html[data-theme="noite"] ::-webkit-scrollbar { width: 5px; height: 5px; }
+html[data-theme="noite"] ::-webkit-scrollbar-track { background: transparent; }
+html[data-theme="noite"] ::-webkit-scrollbar-thumb { background: rgba(200,151,58,0.25); border-radius: 99px; }
+html[data-theme="noite"] ::-webkit-scrollbar-thumb:hover { background: rgba(200,151,58,0.45); }
+
+/* ===== COLUNAS DE STATUS (kanban ClickUp-style) ===== */
+.kanban-column .kanban-column-header {
+  border-top: 3px solid transparent;
+}
+.col-pendente .kanban-column-header    { border-top-color: #f59e0b; }
+.col-andamento .kanban-column-header   { border-top-color: #3b82f6; }
+.col-concluida .kanban-column-header   { border-top-color: #10b981; }
+
+html[data-theme="noite"] .col-pendente .kanban-column-header  { border-top-color: rgba(245,158,11,0.75); }
+html[data-theme="noite"] .col-andamento .kanban-column-header { border-top-color: rgba(59,130,246,0.75); }
+html[data-theme="noite"] .col-concluida .kanban-column-header { border-top-color: rgba(16,185,129,0.75); }

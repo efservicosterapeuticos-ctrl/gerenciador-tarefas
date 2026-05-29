@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Minhas Tarefas — Grupo Elis Formaio</title>
+  <title>Tarefas — Grupo Elis Formaio</title>
   <link rel="stylesheet" href="css/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
@@ -19,11 +19,11 @@
     <nav class="sidebar-nav">
       <button class="nav-item active" data-view="kanban">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-        Kanban
+        Tarefas
       </button>
       <button class="nav-item" data-view="dashboard">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        Meu Dashboard
+        Dashboard
       </button>
     </nav>
     <div class="sidebar-footer">
@@ -50,7 +50,7 @@
           <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
         </svg>
       </button>
-      <span class="topbar-title" id="topbar-title">Minhas Tarefas</span>
+      <span class="topbar-title" id="topbar-title">Tarefas</span>
 
       <button class="btn-mostrar-filtros hidden" id="btn-mostrar-filtros" onclick="toggleFiltros()" title="Mostrar filtros">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
@@ -59,11 +59,12 @@
 
       <div class="topbar-right" id="topbar-filters">
         <input type="search" id="search-tarefas" class="search-input" placeholder="Buscar..." />
+        <select id="filter-usuario"><option value="">Todos</option></select>
         <select id="filter-status" class="filters" style="margin:0">
           <option value="">Todos os status</option>
-          <option value="pendente">Pendente</option>
-          <option value="em_andamento">Em andamento</option>
-          <option value="concluida">Concluída</option>
+          <option value="pendente">A Fazer</option>
+          <option value="em_andamento">Em Andamento</option>
+          <option value="concluida">Concluído</option>
         </select>
         <select id="filter-prioridade" class="filters" style="margin:0">
           <option value="">Todas as prioridades</option>
@@ -72,6 +73,7 @@
           <option value="baixa">Baixa</option>
         </select>
         <button class="btn btn-outline btn-sm" onclick="window.print()">PDF</button>
+        <button class="btn btn-gold" onclick="abrirModalNovaTarefa()">+ Nova Tarefa</button>
         <button class="btn-ocultar-filtros" onclick="toggleFiltros()" title="Ocultar faixa">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -110,6 +112,9 @@
     </div>
   </div>
 
+  <!-- FAB mobile: Nova Tarefa -->
+  <button class="fab" id="fab-nova-tarefa" onclick="abrirModalNovaTarefa()">+</button>
+
   <div id="modal-overlay" class="modal-overlay hidden">
     <div class="modal" id="modal-content"></div>
   </div>
@@ -119,7 +124,6 @@
   <script src="js/auth.js"></script>
   <script src="js/notificacoes.js"></script>
   <script src="js/tasks.js"></script>
-  <script src="js/pipelines.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/dashboard.js"></script>
   <script>
@@ -135,7 +139,7 @@
       });
 
       // Theme picker
-      const temaCurrent = localStorage.getItem('gt-tema') || 'elis';
+      const temaCurrent = localStorage.getItem('gt-tema') || 'noite';
       document.querySelectorAll('.theme-dot').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.theme === temaCurrent);
         btn.addEventListener('click', () => aplicarTema(btn.dataset.theme));
@@ -155,19 +159,22 @@
       });
 
       // Filtros toggle
-      function toggleFiltros() {
+      window.toggleFiltros = function() {
         const el = document.getElementById('topbar-filters');
         const showBtn = document.getElementById('btn-mostrar-filtros');
         const oculto = el.classList.toggle('filters-ocultos');
         showBtn.classList.toggle('hidden', !oculto);
         localStorage.setItem('gt-filtros-ocultos', oculto ? '1' : '0');
-      }
+      };
       if (localStorage.getItem('gt-filtros-ocultos') === '1') {
         document.getElementById('topbar-filters').classList.add('filters-ocultos');
         document.getElementById('btn-mostrar-filtros').classList.remove('hidden');
       }
 
-      await carregarTarefasUsuario(sessao.id);
+      await carregarUsuariosApp();
+      await carregarTarefasTodas();
+      iniciarRealtimeTarefas();
+
       await carregarNotificacoes(sessao.id);
       iniciarRealtimeNotificacoes(sessao.id);
 
@@ -188,23 +195,21 @@
           const viewEl = document.getElementById(`view-${view}`);
           viewEl.classList.remove('hidden');
           requestAnimationFrame(() => viewEl.classList.add('view-animate'));
-          document.getElementById('topbar-title').textContent = view === 'kanban' ? 'Minhas Tarefas' : 'Meu Dashboard';
+          document.getElementById('topbar-title').textContent = view === 'kanban' ? 'Tarefas' : 'Dashboard';
 
-          // Fecha sidebar no mobile ao trocar de view
           if (window.innerWidth <= 768) {
             document.querySelector('.sidebar').classList.remove('sidebar-open');
             const ov = document.getElementById('sidebar-overlay');
             if (ov) ov.classList.remove('active');
           }
 
-          // Controla filtros apenas no desktop
           if (window.innerWidth > 768) {
             const filterWrap = document.getElementById('topbar-filters');
             const oculto = filterWrap && filterWrap.classList.contains('filters-ocultos');
             if (filterWrap && !oculto) filterWrap.style.display = view === 'kanban' ? 'flex' : 'none';
           }
 
-          if (view === 'dashboard') renderDashboardUsuario(_tarefasCache, sessao.nome);
+          if (view === 'dashboard') renderDashboardGeral(_tarefasCache, _usuariosApp);
         });
       });
     })();

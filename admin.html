@@ -25,10 +25,6 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
         Tarefas
       </button>
-      <button class="nav-item" data-tab="pipelines">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-        Pipelines
-      </button>
       <button class="nav-item" data-tab="usuarios">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Usuários
@@ -68,13 +64,12 @@
 
       <div class="topbar-right" id="topbar-actions">
         <input type="search" id="search-tarefas" class="search-input" placeholder="Buscar tarefas..." />
-        <select id="filter-pipeline"><option value="">Todos os pipelines</option></select>
         <select id="filter-usuario"><option value="">Todos os usuários</option></select>
         <select id="filter-status">
           <option value="">Todos os status</option>
-          <option value="pendente">Pendente</option>
-          <option value="em_andamento">Em andamento</option>
-          <option value="concluida">Concluída</option>
+          <option value="pendente">A Fazer</option>
+          <option value="em_andamento">Em Andamento</option>
+          <option value="concluida">Concluído</option>
         </select>
         <button class="btn btn-outline btn-sm" id="btn-exportar-pdf">PDF</button>
         <button class="btn btn-gold" id="btn-nova-tarefa">+ Nova Tarefa</button>
@@ -115,15 +110,6 @@
         </div>
       </section>
 
-      <!-- ABA PIPELINES -->
-      <section id="tab-pipelines" class="tab-content hidden">
-        <div class="section-header">
-          <h3>Pipelines</h3>
-          <button class="btn btn-primary" id="btn-novo-pipeline">+ Novo Pipeline</button>
-        </div>
-        <div id="pipelines-container" class="pipelines-list"></div>
-      </section>
-
       <!-- ABA USUÁRIOS -->
       <section id="tab-usuarios" class="tab-content hidden">
         <div class="section-header">
@@ -149,7 +135,6 @@
   <script src="js/auth.js"></script>
   <script src="js/notificacoes.js"></script>
   <script src="js/tasks.js"></script>
-  <script src="js/pipelines.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/admin.js"></script>
   <script src="js/dashboard.js"></script>
@@ -166,7 +151,7 @@
       });
 
       // Theme picker
-      const temaCurrent = localStorage.getItem('gt-tema') || 'elis';
+      const temaCurrent = localStorage.getItem('gt-tema') || 'noite';
       document.querySelectorAll('.theme-dot').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.theme === temaCurrent);
         btn.addEventListener('click', () => aplicarTema(btn.dataset.theme));

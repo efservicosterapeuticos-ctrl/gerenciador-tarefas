@@ -1,8 +1,13 @@
-const STATUS_LABEL = { pendente: 'Pendente', em_andamento: 'Em andamento', concluida: 'Concluída' };
+const STATUS_LABEL = { pendente: 'A Fazer', em_andamento: 'Em Andamento', concluida: 'Concluído' };
+const STATUS_COLS = [
+  { key: 'pendente',     label: 'A Fazer',      cls: 'col-pendente'  },
+  { key: 'em_andamento', label: 'Em Andamento',  cls: 'col-andamento' },
+  { key: 'concluida',    label: 'Concluído',     cls: 'col-concluida' },
+];
 const PRIORIDADE_LABEL = { alta: 'Alta', media: 'Média', baixa: 'Baixa' };
 const RECORRENCIA_LABEL = { diaria: '↻ Diária', semanal: '↻ Semanal', mensal: '↻ Mensal' };
 
-let _pipelinesKanban = [];
+let _isDragging = false;
 
 function formatarData(dataStr) {
   if (!dataStr) return '';
@@ -10,38 +15,28 @@ function formatarData(dataStr) {
   return `${dia}/${mes}/${ano}`;
 }
 
-function renderizarKanban(tarefas, pipelines, isAdmin = false) {
-  _pipelinesKanban = pipelines;
+function renderizarKanban(tarefas) {
   const container = document.getElementById('tasks-container');
   container.className = 'kanban-board';
 
-  if (!pipelines.length) {
-    container.innerHTML = '<p class="empty-state">Nenhum pipeline criado. Crie um pipeline primeiro.</p>';
-    return;
-  }
-
-  container.innerHTML = pipelines.map(p => {
-    const tarefasColuna = tarefas.filter(t => t.pipeline_id === p.id);
+  container.innerHTML = STATUS_COLS.map(col => {
+    const tarefasColuna = tarefas.filter(t => t.status === col.key);
     return `
-      <div class="kanban-column">
-        <div class="kanban-column-header prioridade-header-${p.prioridade}">
-          <div class="kanban-column-title">
-            <span>${p.nome}</span>
-            <span class="badge badge-${p.prioridade}">${PRIORIDADE_LABEL[p.prioridade]}</span>
-          </div>
+      <div class="kanban-column ${col.cls}">
+        <div class="kanban-column-header">
+          <div class="kanban-column-title"><span>${col.label}</span></div>
           <span class="kanban-count">${tarefasColuna.length}</span>
         </div>
-        <div class="kanban-cards" data-pipeline-id="${p.id}">
-          ${tarefasColuna.map(t => renderCardKanban(t, isAdmin)).join('')}
+        <div class="kanban-cards" data-status="${col.key}">
+          ${tarefasColuna.map(t => renderCardKanban(t)).join('')}
           ${tarefasColuna.length === 0 ? '<div class="kanban-empty">Sem tarefas</div>' : ''}
         </div>
       </div>
     `;
   }).join('');
 
-  if (isAdmin) inicializarDragDrop();
+  inicializarDragDrop();
 
-  // Stagger cards on render
   let delay = 0;
   container.querySelectorAll('.task-card').forEach(card => {
     card.classList.add('card-enter');
@@ -50,7 +45,7 @@ function renderizarKanban(tarefas, pipelines, isAdmin = false) {
   });
 }
 
-function renderCardKanban(t, isAdmin) {
+function renderCardKanban(t) {
   const hoje = new Date().toISOString().split('T')[0];
   const atrasada = t.prazo && t.prazo < hoje && t.status !== 'concluida';
   const prazoHoje = t.prazo && t.prazo === hoje && t.status !== 'concluida';
@@ -68,9 +63,8 @@ function renderCardKanban(t, isAdmin) {
       </div>
       ${t.descricao ? `<p class="task-descricao">${t.descricao}</p>` : ''}
       <div class="task-meta">
-        <span class="badge badge-${t.status}">${STATUS_LABEL[t.status]}</span>
         ${atrasada ? `<span class="badge badge-atrasada">Atrasada</span>` : ''}
-        ${isAdmin && t.usuario ? `<span class="task-pipeline">👤 ${t.usuario.nome}</span>` : ''}
+        ${t.usuario ? `<span class="task-pipeline">👤 ${t.usuario.nome}</span>` : ''}
         ${t.prazo ? `<span class="task-prazo ${atrasada ? 'prazo-atrasado' : prazoHoje ? 'prazo-hoje' : ''}">📅 ${formatarData(t.prazo)}</span>` : ''}
         ${t.recorrencia && t.recorrencia !== 'nenhuma' ? `<span class="badge badge-recorrente">${RECORRENCIA_LABEL[t.recorrencia] || t.recorrencia}</span>` : ''}
       </div>
@@ -90,11 +84,8 @@ function renderCardKanban(t, isAdmin) {
         <span class="checklist-label">${checkFeitos}/${checkTotal} itens concluídos</span>
       ` : ''}
       <div class="task-actions">
-        ${!isAdmin ? renderBotoesStatus(t) : ''}
-        ${isAdmin ? `
-          <button class="btn btn-sm btn-outline" onclick="abrirModalEditarTarefa('${t.id}')">Editar</button>
-          <button class="btn btn-sm btn-danger" onclick="confirmarExcluirTarefa('${t.id}')">Excluir</button>
-        ` : ''}
+        <button class="btn btn-sm btn-outline" onclick="abrirModalEditarTarefa('${t.id}')">Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="confirmarExcluirTarefa('${t.id}')">Excluir</button>
       </div>
     </div>
   `;
@@ -133,19 +124,16 @@ function inicializarDragDrop() {
       ghostClass: 'task-card-ghost',
       chosenClass: 'task-card-chosen',
       dragClass: 'task-card-drag',
+      onStart: () => { _isDragging = true; },
       onEnd: async (evt) => {
+        _isDragging = false;
         const taskId = evt.item.dataset.id;
-        const novoPipelineId = evt.to.dataset.pipelineId;
-        const antigoPipelineId = evt.from.dataset.pipelineId;
-        if (novoPipelineId !== antigoPipelineId) {
-          await editarTarefa(taskId, { pipeline_id: novoPipelineId });
-          registrarHistorico(taskId, 'Pipeline alterado', '');
+        const novoStatus = evt.to.dataset.status;
+        const antigoStatus = evt.from.dataset.status;
+        if (novoStatus !== antigoStatus) {
+          await atualizarStatus(taskId, novoStatus);
           const task = _tarefasCache.find(t => t.id === taskId);
-          if (task) {
-            task.pipeline_id = novoPipelineId;
-            const novoPipeline = _pipelinesKanban.find(p => p.id === novoPipelineId);
-            if (novoPipeline) task.pipeline = { nome: novoPipeline.nome, prioridade: novoPipeline.prioridade };
-          }
+          if (task) task.status = novoStatus;
           atualizarContadores();
         }
       }
@@ -165,18 +153,9 @@ function atualizarContadores() {
   });
 }
 
-function renderBotoesStatus(tarefa) {
-  const proximos = { pendente: 'em_andamento', em_andamento: 'concluida' };
-  const label = { em_andamento: 'Iniciar', concluida: 'Concluir' };
-  const proximo = proximos[tarefa.status];
-  if (!proximo) return '<span class="badge badge-concluida">Concluída ✓</span>';
-  return `<button class="btn btn-sm btn-primary" onclick="mudarStatus('${tarefa.id}', '${proximo}')">${label[proximo]}</button>`;
-}
-
 async function mudarStatus(id, novoStatus) {
   await atualizarStatus(id, novoStatus);
-  const sessao = getSessao();
-  await carregarTarefasUsuario(sessao.id);
+  await carregarTarefasTodas();
 }
 
 function abrirModal(html) {
@@ -192,28 +171,9 @@ document.addEventListener('click', (e) => {
   if (e.target.id === 'modal-overlay') fecharModal();
 });
 
-function renderizarPipelines(pipelines) {
-  const container = document.getElementById('pipelines-container');
-  if (!pipelines.length) {
-    container.innerHTML = '<p class="empty-state">Nenhum pipeline criado.</p>';
-    return;
-  }
-  container.innerHTML = pipelines.map(p => `
-    <div class="pipeline-item" data-id="${p.id}">
-      <div class="pipeline-info">
-        <span class="pipeline-nome">${p.nome}</span>
-        <span class="badge badge-${p.prioridade}">${PRIORIDADE_LABEL[p.prioridade]}</span>
-      </div>
-      <div class="pipeline-actions">
-        <button class="btn btn-sm btn-outline" onclick="abrirModalEditarPipeline('${p.id}')">Editar</button>
-        <button class="btn btn-sm btn-danger" onclick="confirmarExcluirPipeline('${p.id}')">Excluir</button>
-      </div>
-    </div>
-  `).join('');
-}
-
 function renderizarUsuarios(usuarios) {
   const container = document.getElementById('usuarios-container');
+  if (!container) return;
   if (!usuarios.length) {
     container.innerHTML = '<p class="empty-state">Nenhum usuário cadastrado.</p>';
     return;

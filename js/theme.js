@@ -1,6 +1,6 @@
 // Apply immediately on parse to prevent theme flash
 (function () {
-  const t = localStorage.getItem('gt-tema') || 'elis';
+  const t = localStorage.getItem('gt-tema') || 'noite';
   document.documentElement.setAttribute('data-theme', t);
 })();
 
