@@ -1,6 +1,6 @@
 let _tarefasCache = [];
 let _usuariosApp = [];
-let _realtimeChannel = null;
+let _realtimeTasksChannel = null;
 
 async function getTarefasTodas() {
   const { data, error } = await sb
@@ -105,8 +105,8 @@ function aplicarFiltros() {
 }
 
 function iniciarRealtimeTarefas() {
-  if (_realtimeChannel) return;
-  _realtimeChannel = sb
+  if (_realtimeTasksChannel) return;
+  _realtimeTasksChannel = sb
     .channel('tarefas-live')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'tarefas' }, async () => {
       if (_isDragging) return;
