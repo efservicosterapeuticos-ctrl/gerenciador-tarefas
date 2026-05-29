@@ -281,7 +281,7 @@ body {
 .main-content {
   padding: 28px;
   flex: 1;
-  overflow: hidden;
+  min-width: 0;
 }
 
 .section-header {
