@@ -1,9 +1,0 @@
-# Configuração para Railway — instala o Chromium necessário para o whatsapp-web.js
-[phases.setup]
-nixPkgs = ["chromium", "nss", "freetype", "freetype.dev", "harfbuzz", "ca-certificates", "ttf-opensans", "liberation_ttf", "fontconfig", "dbus", "expat"]
-
-[phases.install]
-cmds = ["npm install"]
-
-[start]
-cmd = "CHROMIUM_PATH=$(which chromium) node server.js"
